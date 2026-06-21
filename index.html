@@ -27,11 +27,19 @@
     font-size:16px; line-height:1.35; padding:8px 10px 16px;
   }
   .wrap{max-width:520px; margin:0 auto;}
+
+  .curseg{display:flex; gap:6px; margin-bottom:9px;}
+  .curseg button{
+    flex:1; border:1.5px solid var(--line); background:var(--card); color:var(--sub);
+    border-radius:11px; padding:11px 0; font-size:.9rem; font-weight:800; cursor:pointer;
+    transition:all .12s;
+  }
+  .curseg button.on{background:var(--accent); border-color:var(--accent); color:#fff;}
+
   h1{font-size:.82rem; margin:0 2px 8px; display:flex; align-items:center; gap:6px; color:var(--sub); font-weight:700;}
   h1 .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
 
   .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:10px; margin-bottom:9px;}
-  .seclabel{font-size:.7rem; color:var(--sub); font-weight:700; margin:0 2px 7px;}
   .grid{display:grid; grid-template-columns:1fr 1fr; gap:8px 10px;}
   .field label{display:block; font-size:.7rem; color:var(--sub); margin-bottom:3px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .inputrow{position:relative; display:flex; align-items:center;}
@@ -42,14 +50,13 @@
     border-radius:10px; padding:9px 11px 9px 30px; font-size:1rem; font-weight:700;
     outline:none; transition:border-color .15s; -moz-appearance:textfield;
   }
-  #priceUSD{border-color:var(--accent); background:var(--accent-soft);}
   input.pad-r{padding:9px 26px 9px 11px;}
   input.pad-plain{padding:9px 11px;}
   input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
   input:focus{border-color:var(--accent);}
-  .divider{height:1px;background:var(--line);margin:11px 0;}
 
-  .fxline{display:flex; align-items:center; gap:7px; margin-top:9px; font-size:.72rem; color:var(--sub);}
+  .conv{font-size:.66rem; color:var(--accent); font-weight:700; margin-top:8px;}
+  .fxline{display:flex; align-items:center; gap:7px; margin-top:7px; font-size:.72rem; color:var(--sub);}
   .fxline #fxMarket{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .fxbtn{background:var(--accent-soft); color:var(--accent); border:none; border-radius:7px; padding:5px 9px; font-size:.72rem; font-weight:700; cursor:pointer;}
   .fxbtn:active{opacity:.6;}
@@ -79,49 +86,40 @@
 </head>
 <body>
 <div class="wrap">
-  <h1><span class="dot"></span>eBay 利益計算</h1>
+
+  <div class="curseg" id="curSeg">
+    <button type="button" data-cur="USD" class="on">USD&nbsp;$</button>
+    <button type="button" data-cur="EUR">EUR&nbsp;€</button>
+    <button type="button" data-cur="AUD">AUD&nbsp;A$</button>
+    <button type="button" data-cur="GBP">GBP&nbsp;£</button>
+  </div>
+
+  <h1><span class="dot"></span>eBay 利益計算 — <span id="curName">米ドル</span> ベース</h1>
 
   <div class="card">
-    <div class="seclabel">① 販売価格（どれか入れたら他も連動）</div>
     <div class="grid">
-      <div class="field"><label>USD 米ドル</label>
-        <div class="inputrow"><span class="unit">$</span>
-          <input type="number" id="priceUSD" inputmode="decimal" placeholder="0" value="125"></div></div>
-      <div class="field"><label>EUR ユーロ</label>
-        <div class="inputrow"><span class="unit">€</span>
-          <input type="number" id="priceEUR" inputmode="decimal" placeholder="0"></div></div>
-      <div class="field"><label>AUD 豪ドル</label>
-        <div class="inputrow"><span class="unit">A$</span>
-          <input type="number" id="priceAUD" inputmode="decimal" placeholder="0"></div></div>
-      <div class="field"><label>GBP 英ポンド</label>
-        <div class="inputrow"><span class="unit">£</span>
-          <input type="number" id="priceGBP" inputmode="decimal" placeholder="0"></div></div>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="grid">
-      <div class="field"><label>② 徴収 送料/関税 $</label>
-        <div class="inputrow"><span class="unit">$</span>
+      <div class="field"><label>① 販売価格</label>
+        <div class="inputrow"><span class="unit" id="uP">$</span>
+          <input type="number" id="price" inputmode="decimal" placeholder="0" value="125"></div></div>
+      <div class="field"><label>② 徴収 送料/関税</label>
+        <div class="inputrow"><span class="unit" id="uC">$</span>
           <input type="number" id="collect" inputmode="decimal" placeholder="0" value="0"></div></div>
-      <div class="field"><label>⑤ プロモ率 %</label>
-        <div class="inputrow"><input class="pad-r" type="number" id="promo" inputmode="decimal" placeholder="3" value="3">
-          <span class="unit r">%</span></div></div>
       <div class="field"><label>③ 自己負担送料 ¥</label>
         <div class="inputrow"><span class="unit">¥</span>
           <input type="number" id="ship" inputmode="numeric" placeholder="0" value="3000"></div></div>
       <div class="field"><label>④ 仕入れ ¥</label>
         <div class="inputrow"><span class="unit">¥</span>
           <input type="number" id="cost" inputmode="numeric" placeholder="0" value="12000"></div></div>
+      <div class="field"><label>⑤ プロモ率 %</label>
+        <div class="inputrow"><input class="pad-r" type="number" id="promo" inputmode="decimal" placeholder="3" value="3">
+          <span class="unit r">%</span></div></div>
+      <div class="field"><label>為替 ¥/$</label>
+        <div class="inputrow"><input class="pad-plain" type="number" id="fx" inputmode="decimal" value="161.31"></div></div>
     </div>
+    <div class="conv" id="convLine"></div>
     <div class="fxline">
       <span id="fxMarket">市場レート 取得中…</span>
       <button type="button" class="fxbtn" id="fxRefresh">↻ 最新に更新</button>
-    </div>
-    <div class="grid" style="margin-top:8px">
-      <div class="field"><label>為替 ¥/$（計算用）</label>
-        <div class="inputrow"><input class="pad-plain" type="number" id="fx" inputmode="decimal" value="161.31"></div></div>
-      <div class="field"></div>
     </div>
   </div>
 
@@ -152,7 +150,7 @@
           <div class="field"><label>還付率(消費税) %</label><input class="pad-plain" type="number" id="refund" inputmode="decimal" value="8"></div>
         </div>
         <button class="reset" id="resetBtn">既定値に戻す</button>
-        <div class="note">販売価格はどれか入力すると残り3通貨が為替レートで連動。利益計算はUSD換算値で実行（US向け関税は商品額×<span id="tDuty">12.1</span>%＋$<span id="tDutyF">7</span>）。手取り＝(売上＋徴収)−eBay手数料−関税→円換算後Payoneer控除。還付込み＝還付前＋(仕入−仕入/(1+還付率))。為替(JPY/EUR/AUD/GBP)はfrankfurterから1日1回自動取得・入力は自動保存。</div>
+        <div class="note">通貨ボタンで選んだ通貨で①②を入力→USD換算して計算（US向け関税は商品額×<span id="tDuty">12.1</span>%＋$<span id="tDutyF">7</span>）。手取り＝(売上＋徴収)−eBay手数料−関税→円換算後Payoneer控除。還付込み＝還付前＋(仕入−仕入/(1+還付率))。為替は1日1回自動取得・入力は自動保存。</div>
       </div>
     </details>
   </div>
@@ -160,38 +158,32 @@
 
 <script>
 (function(){
-  var calcIds=["collect","ship","cost","promo","fx","tax","fvf","intl","payoneer","duty","dutyF","refund"];
-  var defaults={collect:"0",ship:"3000",cost:"12000",promo:"3",fx:"161.31",tax:"10",fvf:"13.25",intl:"1.35",payoneer:"2",duty:"12.1",dutyF:"7",refund:"8"};
+  var ids=["price","collect","ship","cost","promo","fx","tax","fvf","intl","payoneer","duty","dutyF","refund"];
+  var defaults={price:"125",collect:"0",ship:"3000",cost:"12000",promo:"3",fx:"161.31",tax:"10",fvf:"13.25",intl:"1.35",payoneer:"2",duty:"12.1",dutyF:"7",refund:"8"};
+  var SYM={USD:"$",EUR:"€",AUD:"A$",GBP:"£"};
+  var NAME={USD:"米ドル",EUR:"ユーロ",AUD:"豪ドル",GBP:"英ポンド"};
+  // CUR per 1 USD（frankfurter base=USD）。取得前の暫定値。
   var rates={USD:1, JPY:161.31, EUR:0.92, AUD:1.50, GBP:0.79};
-  var priceMap={priceUSD:"USD",priceEUR:"EUR",priceAUD:"AUD",priceGBP:"GBP"};
+  var cur="USD";
   var $=function(id){return document.getElementById(id);};
   var num=function(id){var v=parseFloat($(id).value);return isFinite(v)?v:0;};
 
   function yen(n){var r=Math.round(n);return (r<0?"−¥":"¥")+Math.abs(r).toLocaleString("ja-JP");}
+  function usd(n){return "$"+n.toFixed(2);}
   function setMetric(vId,pId,pre,baseJPY){
     var el=$(vId); el.textContent=yen(pre); el.className="v "+(pre>=0?"pos":"neg");
     if(pId){var p=baseJPY>0?(pre/baseJPY*100):0;$(pId).textContent="粗利率 "+(p>=0?"":"−")+Math.abs(p).toFixed(1)+"%";}
   }
-
-  function relink(srcId){
-    var src=priceMap[srcId];
-    var u=num(srcId)/(rates[src]||1);
-    Object.keys(priceMap).forEach(function(id){
-      if(id!==srcId){ $(id).value=(u*(rates[priceMap[id]]||1)).toFixed(2); }
-    });
-    calc();
-  }
-  function fillFromUSD(){
-    var u=num("priceUSD")/(rates.USD||1);
-    Object.keys(priceMap).forEach(function(id){ if(id!=="priceUSD") $(id).value=(u*(rates[priceMap[id]]||1)).toFixed(2); });
-  }
+  function rate(){return rates[cur]||1;}
 
   function calc(){
-    var P=num("priceUSD");
-    var col=num("collect"), ship=num("ship"), cost=num("cost");
+    var Pin=num("price"), colIn=num("collect"), ship=num("ship"), cost=num("cost");
     var promo=num("promo")/100, fx=num("fx"), tax=num("tax")/100;
     var fvf=num("fvf")/100, intl=num("intl")/100, payo=num("payoneer")/100;
     var dutyR=num("duty")/100, dutyF=num("dutyF"), refundR=num("refund")/100;
+
+    // 選択通貨 → USD 換算
+    var P=Pin/rate(), col=colIn/rate();
 
     var base=P+col;
     var ebayFees=base*(1+tax)*(fvf+promo+intl);
@@ -208,17 +200,36 @@
     setMetric("noPre","noPreP",noPre,baseJPY);
     setMetric("noInc","noIncP",noPre+refund,baseJPY);
 
+    // USD換算の表示（USD以外のとき）
+    if(cur==="USD"){ $("convLine").textContent=""; }
+    else{
+      var t="USD換算 → 販売 "+usd(P);
+      if(colIn>0) t+=" / 徴収 "+usd(col);
+      t+="（"+SYM[cur]+"1 = "+usd(1/rate())+"）";
+      $("convLine").textContent=t;
+    }
+
     $("tDuty").textContent=num("duty"); $("tDutyF").textContent=num("dutyF");
-    try{var o={};calcIds.forEach(function(k){o[k]=$(k).value;});o.priceUSD=$("priceUSD").value;localStorage.setItem("ebayProfitCalc",JSON.stringify(o));}catch(e){}
+    try{var o={};ids.forEach(function(k){o[k]=$(k).value;});o.__cur=cur;localStorage.setItem("ebayProfitCalc",JSON.stringify(o));}catch(e){}
   }
 
-  try{var saved=JSON.parse(localStorage.getItem("ebayProfitCalc")||"null");
-    if(saved){calcIds.forEach(function(k){if(saved[k]!==undefined)$(k).value=saved[k];}); if(saved.priceUSD!==undefined)$("priceUSD").value=saved.priceUSD;}}catch(e){}
+  function applyCur(c){
+    cur=c;
+    var btns=$("curSeg").getElementsByTagName("button");
+    for(var i=0;i<btns.length;i++){btns[i].className=(btns[i].getAttribute("data-cur")===c?"on":"");}
+    $("uP").textContent=SYM[c]; $("uC").textContent=SYM[c]; $("curName").textContent=NAME[c];
+    calc();
+  }
 
-  Object.keys(priceMap).forEach(function(id){ $(id).addEventListener("input",function(){relink(id);}); });
-  calcIds.forEach(function(k){$(k).addEventListener("input",calc);});
-  $("resetBtn").addEventListener("click",function(){calcIds.forEach(function(k){$(k).value=defaults[k];});fillFromUSD();calc();});
-  fillFromUSD(); calc();
+  // restore
+  try{var saved=JSON.parse(localStorage.getItem("ebayProfitCalc")||"null");
+    if(saved){ids.forEach(function(k){if(saved[k]!==undefined)$(k).value=saved[k];}); if(saved.__cur&&SYM[saved.__cur])cur=saved.__cur;}}catch(e){}
+
+  var segBtns=$("curSeg").getElementsByTagName("button");
+  for(var i=0;i<segBtns.length;i++){segBtns[i].addEventListener("click",function(){applyCur(this.getAttribute("data-cur"));});}
+  ids.forEach(function(k){$(k).addEventListener("input",calc);});
+  $("resetBtn").addEventListener("click",function(){ids.forEach(function(k){$(k).value=defaults[k];});calc();});
+  applyCur(cur);
 
   /* 為替の自動取得（1日1回キャッシュ・非同期・失敗しても無害） */
   function todayStr(){var d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
@@ -234,15 +245,16 @@
   function loadRate(force,applyFx){
     var key="ebayFxMarket";
     if(!force){try{var c=JSON.parse(localStorage.getItem(key)||"null");if(c&&c.fetchedDay===todayStr()){window.__fxMarket=c;applyRates(c);showMarket(c);
+      // 起動時：手動で為替を変えてなければ最新を反映
       try{var s0=JSON.parse(localStorage.getItem("ebayProfitCalc")||"null");if(!s0||s0.fx===undefined||s0.fx===defaults.fx){$("fx").value=c.rates.JPY;}}catch(e){}
-      fillFromUSD(); calc(); return;}}catch(e){}}
+      calc();return;}}catch(e){}}
     $("fxMarket").textContent="市場レート 取得中…";
     fetchRate().then(function(m){
       m.fetchedDay=todayStr(); window.__fxMarket=m; applyRates(m); showMarket(m);
       try{localStorage.setItem(key,JSON.stringify(m));}catch(e){}
-      if(applyFx){ $("fx").value=m.rates.JPY; }
+      if(applyFx){ $("fx").value=m.rates.JPY; }            // ボタン押下時は必ず反映
       else { try{var s=JSON.parse(localStorage.getItem("ebayProfitCalc")||"null");if(!s||s.fx===undefined||s.fx===defaults.fx){$("fx").value=m.rates.JPY;}}catch(e){} }
-      fillFromUSD(); calc();
+      calc();
     }).catch(function(){showMarket(null);});
   }
   $("fxRefresh").addEventListener("click",function(){loadRate(true,true);});
