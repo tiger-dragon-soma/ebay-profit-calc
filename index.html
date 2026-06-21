@@ -119,8 +119,7 @@
     <div class="conv" id="convLine"></div>
     <div class="fxline">
       <span id="fxMarket">市場レート 取得中…</span>
-      <button type="button" class="fxbtn" id="fxApply">適用</button>
-      <button type="button" class="fxbtn" id="fxRefresh">↻</button>
+      <button type="button" class="fxbtn" id="fxRefresh">↻ 最新に更新</button>
     </div>
   </div>
 
@@ -243,20 +242,23 @@
       .catch(function(){return fetch("https://open.er-api.com/v6/latest/USD").then(function(r){return r.json();})
         .then(function(j){if(j&&j.rates&&j.rates.JPY)return {rates:j.rates,date:(j.time_last_update_utc||"").slice(5,16)};throw 0;});});
   }
-  function loadRate(force){
+  function loadRate(force,applyFx){
     var key="ebayFxMarket";
-    if(!force){try{var c=JSON.parse(localStorage.getItem(key)||"null");if(c&&c.fetchedDay===todayStr()){window.__fxMarket=c;applyRates(c);showMarket(c);calc();return;}}catch(e){}}
+    if(!force){try{var c=JSON.parse(localStorage.getItem(key)||"null");if(c&&c.fetchedDay===todayStr()){window.__fxMarket=c;applyRates(c);showMarket(c);
+      // 起動時：手動で為替を変えてなければ最新を反映
+      try{var s0=JSON.parse(localStorage.getItem("ebayProfitCalc")||"null");if(!s0||s0.fx===undefined||s0.fx===defaults.fx){$("fx").value=c.rates.JPY;}}catch(e){}
+      calc();return;}}catch(e){}}
     $("fxMarket").textContent="市場レート 取得中…";
     fetchRate().then(function(m){
       m.fetchedDay=todayStr(); window.__fxMarket=m; applyRates(m); showMarket(m);
       try{localStorage.setItem(key,JSON.stringify(m));}catch(e){}
-      try{var s=JSON.parse(localStorage.getItem("ebayProfitCalc")||"null");if(!s||s.fx===undefined||s.fx===defaults.fx){$("fx").value=m.rates.JPY;}}catch(e){}
+      if(applyFx){ $("fx").value=m.rates.JPY; }            // ボタン押下時は必ず反映
+      else { try{var s=JSON.parse(localStorage.getItem("ebayProfitCalc")||"null");if(!s||s.fx===undefined||s.fx===defaults.fx){$("fx").value=m.rates.JPY;}}catch(e){} }
       calc();
     }).catch(function(){showMarket(null);});
   }
-  $("fxApply").addEventListener("click",function(){if(window.__fxMarket){$("fx").value=window.__fxMarket.rates.JPY;calc();}});
-  $("fxRefresh").addEventListener("click",function(){loadRate(true);});
-  loadRate(false);
+  $("fxRefresh").addEventListener("click",function(){loadRate(true,true);});
+  loadRate(false,false);
 })();
 </script>
 </body>
