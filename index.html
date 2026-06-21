@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d9488">
+<title>eBay 利益計算</title>
+<style>
+  :root{
+    --bg:#f4f6f8; --card:#ffffff; --ink:#1b2733; --sub:#6b7a89;
+    --line:#e2e8f0; --accent:#0d9488; --accent-soft:#e6f4f1;
+    --pos:#0f9d58; --neg:#e03e3e; --field:#f1f5f9;
+    --us:#1d4ed8; --us-soft:#eaf0ff;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0e1418; --card:#18222b; --ink:#e8eef3; --sub:#9aabbb;
+      --line:#26333d; --accent:#2dd4bf; --accent-soft:#123430;
+      --pos:#4ade80; --neg:#f87171; --field:#0f1a21;
+      --us:#7aa2ff; --us-soft:#16233f;
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+    font-size:16px; line-height:1.35; padding:8px 10px 16px;
+  }
+  .wrap{max-width:520px; margin:0 auto;}
+  h1{font-size:.92rem; margin:2px 2px 8px; display:flex; align-items:center; gap:7px; color:var(--sub); font-weight:700;}
+  h1 .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:10px; margin-bottom:9px;}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:8px 10px;}
+  .field label{display:block; font-size:.7rem; color:var(--sub); margin-bottom:3px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .inputrow{position:relative; display:flex; align-items:center;}
+  .unit{position:absolute; left:10px; color:var(--sub); font-size:.85rem; pointer-events:none;}
+  .unit.r{left:auto; right:11px;}
+  input[type=number]{
+    width:100%; border:1.5px solid var(--line); background:var(--field); color:var(--ink);
+    border-radius:10px; padding:9px 11px 9px 24px; font-size:1rem; font-weight:700;
+    outline:none; transition:border-color .15s; -moz-appearance:textfield;
+  }
+  input.pad-r{padding:9px 26px 9px 11px;}
+  input.pad-plain{padding:9px 11px;}
+  input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  input:focus{border-color:var(--accent);}
+
+  .fxline{display:flex; align-items:center; gap:7px; margin-top:8px; font-size:.72rem; color:var(--sub);}
+  .fxline #fxMarket{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .fxbtn{background:var(--accent-soft); color:var(--accent); border:none; border-radius:7px; padding:5px 9px; font-size:.72rem; font-weight:700; cursor:pointer;}
+  .fxbtn:active{opacity:.6;}
+
+  .results{display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:9px;}
+  .res{border-radius:14px; padding:11px 11px 12px;}
+  .res.us{background:var(--us-soft);} .res.non{background:var(--accent-soft);}
+  .res h2{margin:0 0 9px; font-size:.85rem; font-weight:800;}
+  .res.us h2{color:var(--us);} .res.non h2{color:var(--accent);}
+  .res h2 small{font-weight:600; font-size:.66rem; color:var(--sub); margin-left:3px;}
+  .metric{margin-bottom:9px;}
+  .metric:last-child{margin-bottom:0;}
+  .metric .k{font-size:.68rem; color:var(--sub); margin-bottom:0;}
+  .metric .v{font-size:1.3rem; font-weight:800; letter-spacing:-.5px; line-height:1.15;}
+  .metric .v.pos{color:var(--pos);} .metric .v.neg{color:var(--neg);}
+  .metric .pct{font-size:.66rem; color:var(--sub); font-weight:600;}
+
+  details{margin:0;}
+  summary{cursor:pointer; font-size:.76rem; color:var(--sub); font-weight:700; list-style:none; padding:2px;}
+  summary::-webkit-details-marker{display:none;}
+  summary::before{content:"⚙ ";}
+  .adv{margin-top:9px;}
+  .adv label{font-size:.66rem;}
+  .reset{margin-top:9px; background:none; border:1px solid var(--line); color:var(--sub); border-radius:9px; padding:6px 11px; font-size:.72rem; font-weight:600; cursor:pointer;}
+  .note{font-size:.66rem; color:var(--sub); margin-top:9px; line-height:1.5;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1><span class="dot"></span>eBay 利益計算</h1>
+
+  <div class="card">
+    <div class="grid">
+      <div class="field"><label>① 販売価格 $</label>
+        <div class="inputrow"><span class="unit">$</span>
+          <input type="number" id="price" inputmode="decimal" placeholder="0" value="125"></div></div>
+      <div class="field"><label>② 徴収 送料/関税 $</label>
+        <div class="inputrow"><span class="unit">$</span>
+          <input type="number" id="collect" inputmode="decimal" placeholder="0" value="0"></div></div>
+      <div class="field"><label>③ 自己負担送料 ¥</label>
+        <div class="inputrow"><span class="unit">¥</span>
+          <input type="number" id="ship" inputmode="numeric" placeholder="0" value="3000"></div></div>
+      <div class="field"><label>④ 仕入れ ¥</label>
+        <div class="inputrow"><span class="unit">¥</span>
+          <input type="number" id="cost" inputmode="numeric" placeholder="0" value="12000"></div></div>
+      <div class="field"><label>⑤ プロモ率 %</label>
+        <div class="inputrow"><input class="pad-r" type="number" id="promo" inputmode="decimal" placeholder="3" value="3">
+          <span class="unit r">%</span></div></div>
+      <div class="field"><label>為替 ¥/$</label>
+        <div class="inputrow"><input class="pad-plain" type="number" id="fx" inputmode="decimal" value="161.31"></div></div>
+    </div>
+    <div class="fxline">
+      <span id="fxMarket">市場レート 取得中…</span>
+      <button type="button" class="fxbtn" id="fxApply">適用</button>
+      <button type="button" class="fxbtn" id="fxRefresh">↻</button>
+    </div>
+  </div>
+
+  <div class="results">
+    <div class="res us">
+      <h2>① US向け <small>関税あり</small></h2>
+      <div class="metric"><div class="k">還付前 粗利</div><div class="v" id="usPre">–</div><div class="pct" id="usPreP"></div></div>
+      <div class="metric"><div class="k">還付込み 粗利</div><div class="v" id="usInc">–</div><div class="pct" id="usIncP"></div></div>
+    </div>
+    <div class="res non">
+      <h2>② US以外 <small>関税なし</small></h2>
+      <div class="metric"><div class="k">還付前 粗利</div><div class="v" id="noPre">–</div><div class="pct" id="noPreP"></div></div>
+      <div class="metric"><div class="k">還付込み 粗利</div><div class="v" id="noInc">–</div><div class="pct" id="noIncP"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <details id="advBox">
+      <summary>詳細設定（手数料・関税・還付）</summary>
+      <div class="adv">
+        <div class="grid">
+          <div class="field"><label>Sales tax %</label><input class="pad-plain" type="number" id="tax" inputmode="decimal" value="10"></div>
+          <div class="field"><label>eBay FVF %</label><input class="pad-plain" type="number" id="fvf" inputmode="decimal" value="13.25"></div>
+          <div class="field"><label>海外手数料 %</label><input class="pad-plain" type="number" id="intl" inputmode="decimal" value="1.35"></div>
+          <div class="field"><label>Payoneer %</label><input class="pad-plain" type="number" id="payoneer" inputmode="decimal" value="2"></div>
+          <div class="field"><label>関税 Duty %</label><input class="pad-plain" type="number" id="duty" inputmode="decimal" value="12.1"></div>
+          <div class="field"><label>Duty固定 $</label><input class="pad-plain" type="number" id="dutyF" inputmode="decimal" value="7"></div>
+          <div class="field"><label>還付率(消費税) %</label><input class="pad-plain" type="number" id="refund" inputmode="decimal" value="8"></div>
+        </div>
+        <button class="reset" id="resetBtn">既定値に戻す</button>
+        <div class="note">US向け関税＝商品額×<span id="tDuty">12.1</span>%＋$<span id="tDutyF">7</span>。手取り＝(売上＋徴収)−eBay手数料−関税→円換算後Payoneer控除。還付込み＝還付前＋(仕入−仕入/(1+還付率))。為替は1日1回自動取得・入力は自動保存。</div>
+      </div>
+    </details>
+  </div>
+</div>
+
+<script>
+(function(){
+  var ids=["price","collect","ship","cost","promo","fx","tax","fvf","intl","payoneer","duty","dutyF","refund"];
+  var defaults={price:"125",collect:"0",ship:"3000",cost:"12000",promo:"3",fx:"161.31",tax:"10",fvf:"13.25",intl:"1.35",payoneer:"2",duty:"12.1",dutyF:"7",refund:"8"};
+  var $=function(id){return document.getElementById(id);};
+  var num=function(id){var v=parseFloat($(id).value);return isFinite(v)?v:0;};
+
+  function yen(n){var r=Math.round(n);return (r<0?"−¥":"¥")+Math.abs(r).toLocaleString("ja-JP");}
+  function setMetric(vId,pId,pre,baseJPY){
+    var el=$(vId); el.textContent=yen(pre); el.className="v "+(pre>=0?"pos":"neg");
+    if(pId){var p=baseJPY>0?(pre/baseJPY*100):0;$(pId).textContent="粗利率 "+(p>=0?"":"−")+Math.abs(p).toFixed(1)+"%";}
+  }
+
+  function calc(){
+    var P=num("price"), col=num("collect"), ship=num("ship"), cost=num("cost");
+    var promo=num("promo")/100, fx=num("fx"), tax=num("tax")/100;
+    var fvf=num("fvf")/100, intl=num("intl")/100, payo=num("payoneer")/100;
+    var dutyR=num("duty")/100, dutyF=num("dutyF"), refundR=num("refund")/100;
+
+    var base=P+col;
+    var ebayFees=base*(1+tax)*(fvf+promo+intl);
+    var dutyUS=P*dutyR+dutyF;
+    var refund=cost-cost/(1+refundR);
+    var toJPY=function(u){return u*fx*(1-payo);};
+    var baseJPY=P*fx;
+
+    var usPre=toJPY(base-ebayFees-dutyUS)-ship-cost;
+    setMetric("usPre","usPreP",usPre,baseJPY);
+    setMetric("usInc","usIncP",usPre+refund,baseJPY);
+
+    var noPre=toJPY(base-ebayFees)-ship-cost;
+    setMetric("noPre","noPreP",noPre,baseJPY);
+    setMetric("noInc","noIncP",noPre+refund,baseJPY);
+
+    $("tDuty").textContent=num("duty"); $("tDutyF").textContent=num("dutyF");
+    try{var o={};ids.forEach(function(k){o[k]=$(k).value;});localStorage.setItem("ebayProfitCalc",JSON.stringify(o));}catch(e){}
+  }
+
+  try{var saved=JSON.parse(localStorage.getItem("ebayProfitCalc")||"null");
+    if(saved){ids.forEach(function(k){if(saved[k]!==undefined)$(k).value=saved[k];});}}catch(e){}
+
+  ids.forEach(function(k){$(k).addEventListener("input",calc);});
+  $("resetBtn").addEventListener("click",function(){ids.forEach(function(k){$(k).value=defaults[k];});calc();});
+  calc();
+
+  /* 為替の自動取得（1日1回キャッシュ・非同期・失敗しても無害） */
+  function todayStr(){var d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
+  function showMarket(m){$("fxMarket").textContent=m?("市場レート ¥"+m.rate.toFixed(2)+"（"+m.date+"）"):"市場レート 取得できず（手動でOK）";}
+  function fetchRate(){
+    return fetch("https://api.frankfurter.dev/v1/latest?base=USD&symbols=JPY")
+      .then(function(r){return r.json();})
+      .then(function(j){if(j&&j.rates&&j.rates.JPY)return {rate:j.rates.JPY,date:j.date};throw 0;})
+      .catch(function(){return fetch("https://open.er-api.com/v6/latest/USD").then(function(r){return r.json();})
+        .then(function(j){if(j&&j.rates&&j.rates.JPY)return {rate:j.rates.JPY,date:(j.time_last_update_utc||"").slice(5,16)};throw 0;});});
+  }
+  function loadRate(force){
+    var key="ebayFxMarket";
+    if(!force){try{var c=JSON.parse(localStorage.getItem(key)||"null");if(c&&c.fetchedDay===todayStr()){window.__fxMarket=c;showMarket(c);return;}}catch(e){}}
+    $("fxMarket").textContent="市場レート 取得中…";
+    fetchRate().then(function(m){
+      m.fetchedDay=todayStr(); window.__fxMarket=m; showMarket(m);
+      try{localStorage.setItem(key,JSON.stringify(m));}catch(e){}
+      try{var s=JSON.parse(localStorage.getItem("ebayProfitCalc")||"null");if(!s||s.fx===undefined||s.fx===defaults.fx){$("fx").value=m.rate;calc();}}catch(e){}
+    }).catch(function(){showMarket(null);});
+  }
+  $("fxApply").addEventListener("click",function(){if(window.__fxMarket){$("fx").value=window.__fxMarket.rate;calc();}});
+  $("fxRefresh").addEventListener("click",function(){loadRate(true);});
+  loadRate(false);
+})();
+</script>
+</body>
+</html>
