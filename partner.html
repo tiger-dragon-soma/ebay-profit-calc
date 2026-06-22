@@ -33,7 +33,7 @@
   .inputrow{position:relative; display:flex; align-items:center;}
   .unit{position:absolute; left:10px; color:var(--sub); font-size:.82rem; font-weight:700; pointer-events:none;}
   .unit.r{left:auto; right:11px; font-weight:600;}
-  input[type=number]{width:100%; border:1.5px solid var(--line); background:var(--field); color:var(--ink);
+  input[type=number],input[type=text]{width:100%; border:1.5px solid var(--line); background:var(--field); color:var(--ink);
     border-radius:10px; padding:9px 11px 9px 30px; font-size:1rem; font-weight:700; outline:none; transition:border-color .15s; -moz-appearance:textfield;}
   input.pad-r{padding:9px 26px 9px 11px;}
   input.pad-plain{padding:9px 11px;}
@@ -193,14 +193,14 @@
   function loadRate(force,applyFx){
     var key="ebayFxMarket";
     if(!force){try{var c=JSON.parse(localStorage.getItem(key)||"null");if(c&&c.fetchedDay===todayStr()){window.__fxMarket=c;showMarket(c);
-      try{var s0=JSON.parse(localStorage.getItem("ebayProfitCalcPartner")||"null");if(!s0||s0.fx===undefined||s0.fx===defaults.fx){$("fx").value=c.rates.JPY;}}catch(e){}
+      try{var s0=JSON.parse(localStorage.getItem("ebayProfitCalcPartner")||"null");if(!s0||s0.fx===undefined||s0.fx===defaults.fx){$("fx").value=Math.round(c.rates.JPY*100)/100;}}catch(e){}
       compute();return;}}catch(e){}}
     $("fxMarket").textContent="市場レート 取得中…";
     fetchRate().then(function(m){
       m.fetchedDay=todayStr(); window.__fxMarket=m; showMarket(m);
       try{localStorage.setItem(key,JSON.stringify(m));}catch(e){}
-      if(applyFx){ $("fx").value=m.rates.JPY; }
-      else { try{var s=JSON.parse(localStorage.getItem("ebayProfitCalcPartner")||"null");if(!s||s.fx===undefined||s.fx===defaults.fx){$("fx").value=m.rates.JPY;}}catch(e){} }
+      if(applyFx){ $("fx").value=Math.round(m.rates.JPY*100)/100; }
+      else { try{var s=JSON.parse(localStorage.getItem("ebayProfitCalcPartner")||"null");if(!s||s.fx===undefined||s.fx===defaults.fx){$("fx").value=Math.round(m.rates.JPY*100)/100;}}catch(e){} }
       compute();
     }).catch(function(){showMarket(null);});
   }
