@@ -167,11 +167,12 @@
   function todayStr(){var d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
   function showMarket(m){$("fxMarket").textContent=m?("市場レート ¥"+m.rates.JPY.toFixed(2)+"（"+m.date+"）"):"市場レート 取得できず（手動でOK）";}
   function fetchRate(){
-    return fetch("https://api.frankfurter.dev/v1/latest?base=USD&symbols=JPY")
+    // 主: open.er-api（毎日更新）／予備: frankfurter（ECB・平日のみ）
+    return fetch("https://open.er-api.com/v6/latest/USD")
       .then(function(r){return r.json();})
-      .then(function(j){if(j&&j.rates&&j.rates.JPY)return {rates:j.rates,date:j.date};throw 0;})
-      .catch(function(){return fetch("https://open.er-api.com/v6/latest/USD").then(function(r){return r.json();})
-        .then(function(j){if(j&&j.rates&&j.rates.JPY)return {rates:{JPY:j.rates.JPY},date:(j.time_last_update_utc||"").slice(5,16)};throw 0;});});
+      .then(function(j){if(j&&j.rates&&j.rates.JPY)return {rates:{JPY:j.rates.JPY},date:(j.time_last_update_utc||"").slice(5,16)};throw 0;})
+      .catch(function(){return fetch("https://api.frankfurter.dev/v1/latest?base=USD&symbols=JPY").then(function(r){return r.json();})
+        .then(function(j){if(j&&j.rates&&j.rates.JPY)return {rates:j.rates,date:j.date};throw 0;});});
   }
   function loadRate(force,applyFx){
     var key="ebayFxMarket";
