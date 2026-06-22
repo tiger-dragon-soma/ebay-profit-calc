@@ -70,20 +70,20 @@
     <div class="grid">
       <div class="field"><label>① 販売価格 $</label>
         <div class="inputrow"><span class="unit">$</span>
-          <input type="number" id="price" inputmode="decimal" placeholder="0" value="125"></div></div>
+          <input type="text" id="price" inputmode="decimal" placeholder="0" value="125"></div></div>
       <div class="field"><label>② 送料 $（課金・自動）</label>
         <div class="inputrow"><span class="unit">$</span>
-          <input type="number" id="ship" inputmode="decimal" placeholder="0" readonly></div>
+          <input type="text" id="ship" inputmode="decimal" placeholder="0" readonly></div>
         <div class="shiptag" id="shipTag">段階1</div></div>
       <div class="field"><label>③ 合計 $（販売＋送料）</label>
         <div class="inputrow"><span class="unit">$</span>
-          <input type="number" id="total" inputmode="decimal" placeholder="0"></div></div>
+          <input type="text" id="total" inputmode="decimal" placeholder="0"></div></div>
       <div class="field"><label>自己負担送料 ¥（実費）</label>
         <div class="inputrow"><span class="unit">¥</span>
-          <input type="number" id="selfship" inputmode="numeric" placeholder="0" value="3000"></div></div>
+          <input type="text" id="selfship" inputmode="numeric" placeholder="0" value="3000"></div></div>
       <div class="field"><label>仕入れ ¥</label>
         <div class="inputrow"><span class="unit">¥</span>
-          <input type="number" id="cost" inputmode="numeric" placeholder="0" value="12000"></div></div>
+          <input type="text" id="cost" inputmode="numeric" placeholder="0" value="12000"></div></div>
       <div class="field"><label>プロモ率 %</label>
         <div class="inputrow"><input class="pad-r" type="number" id="promo" inputmode="decimal" placeholder="3" value="3">
           <span class="unit r">%</span></div></div>
@@ -127,10 +127,23 @@
   var SHIP=[[130,150,20],[170,200,30],[210,250,40],[255,300,45],[300,350,50],[345,400,55],[390,450,60],[430,500,70],[520,600,80],[610,700,90],[700,800,100],[780,900,120],[870,1000,130],[960,1100,140],[1040,1200,160],[1130,1300,170],[1220,1400,180],[1300,1500,200],[1390,1600,210],[1480,1700,220],[1570,1800,230],[1650,1900,250],[1740,2000,260],[1830,2100,270],[1910,2200,290],[2000,2300,300],[2090,2400,310],[2170,2500,330]];
   var calcIds=["selfship","cost","promo","fx","tax","fvf","intl","payoneer","duty","dutyF"];
   var defaults={selfship:"3000",cost:"12000",promo:"3",fx:"161.31",tax:"10",fvf:"13.25",intl:"1.35",payoneer:"2",duty:"13.1",dutyF:"7"};
+  var moneyIds=["price","ship","total","selfship","cost"];
   var $=function(id){return document.getElementById(id);};
-  var num=function(id){var v=parseFloat($(id).value);return isFinite(v)?v:0;};
+  var num=function(id){var v=parseFloat(($(id).value||"").replace(/,/g,""));return isFinite(v)?v:0;};
   function yen(n){var r=Math.round(n);return (r<0?"−¥":"¥")+Math.abs(r).toLocaleString("ja-JP");}
   function r2(n){return Math.round(n*100)/100;}
+  function comma(n){if(n===""||n===null||!isFinite(n))return "";var neg=n<0,x=Math.abs(Math.round(n*100)/100),p=(""+x).split(".");p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,",");return (neg?"-":"")+(p.length>1?p[0]+"."+p[1]:p[0]);}
+  function setMoney(id,n){$(id).value=comma(n);}
+  function reformat(el){
+    var caret=el.selectionStart||0, before=el.value.slice(0,caret).replace(/[^\d]/g,"").length;
+    var cl=el.value.replace(/[^\d.]/g,""), dot=cl.indexOf("."), ip,fp="";
+    if(dot>=0){ip=cl.slice(0,dot).replace(/\./g,"");fp=cl.slice(dot+1).replace(/\./g,"");}else ip=cl;
+    ip=ip.replace(/^0+(?=\d)/,"");
+    var out=ip.replace(/\B(?=(\d{3})+(?!\d))/g,",")+(dot>=0?"."+fp:"");
+    el.value=out;
+    var pos=0,cnt=0; while(pos<out.length&&cnt<before){if(/\d/.test(out[pos]))cnt++;pos++;}
+    try{el.setSelectionRange(pos,pos);}catch(e){}
+  }
   function tierByPrice(P){for(var i=0;i<SHIP.length;i++){if(P<=SHIP[i][0])return i;}return SHIP.length-1;}
   function tierByTotal(T){for(var i=0;i<SHIP.length;i++){if(T<SHIP[i][1])return i;}return SHIP.length-1;}
 
@@ -151,16 +164,19 @@
     try{var o={};calcIds.forEach(function(k){o[k]=$(k).value;});o.price=$("price").value;o.ship=$("ship").value;localStorage.setItem("ebayProfitCalcPartner",JSON.stringify(o));}catch(e){}
   }
   function setTag(i,over){$("shipTag").textContent="段階"+(i+1)+(over?"（表上限超）":"");}
-  function fromPrice(){var P=num("price");var i=tierByPrice(P);$("ship").value=SHIP[i][2];$("total").value=r2(P+SHIP[i][2]);setTag(i,P>SHIP[SHIP.length-1][0]);compute();}
-  function fromTotal(){var T=num("total");var i=tierByTotal(T);var L=SHIP[i][2];$("ship").value=L;$("price").value=r2(Math.max(0,T-L));setTag(i,T>=SHIP[SHIP.length-1][1]);compute();}
+  function fromPrice(){var P=num("price");var i=tierByPrice(P);setMoney("ship",SHIP[i][2]);setMoney("total",P+SHIP[i][2]);setTag(i,P>SHIP[SHIP.length-1][0]);compute();}
+  function fromTotal(){var T=num("total");var i=tierByTotal(T);var L=SHIP[i][2];setMoney("ship",L);setMoney("price",Math.max(0,T-L));setTag(i,T>=SHIP[SHIP.length-1][1]);compute();}
 
   try{var saved=JSON.parse(localStorage.getItem("ebayProfitCalcPartner")||"null");
     if(saved){calcIds.forEach(function(k){if(saved[k]!==undefined)$(k).value=saved[k];});if(saved.price!==undefined)$("price").value=saved.price;}}catch(e){}
+  moneyIds.forEach(function(id){if($(id).value!=="")setMoney(id,num(id));});
 
-  $("price").addEventListener("input",fromPrice);
-  $("total").addEventListener("input",fromTotal);
-  ["selfship","cost","promo","fx","tax","fvf","intl","payoneer","duty","dutyF"].forEach(function(k){$(k).addEventListener("input",compute);});
-  $("resetBtn").addEventListener("click",function(){calcIds.forEach(function(k){$(k).value=defaults[k];});fromPrice();});
+  $("price").addEventListener("input",function(){reformat(this);fromPrice();});
+  $("total").addEventListener("input",function(){reformat(this);fromTotal();});
+  $("selfship").addEventListener("input",function(){reformat(this);compute();});
+  $("cost").addEventListener("input",function(){reformat(this);compute();});
+  ["promo","fx","tax","fvf","intl","payoneer","duty","dutyF"].forEach(function(k){$(k).addEventListener("input",compute);});
+  $("resetBtn").addEventListener("click",function(){calcIds.forEach(function(k){$(k).value=defaults[k];});moneyIds.forEach(function(id){if($(id).value!=="")setMoney(id,num(id));});fromPrice();});
   fromPrice();
 
   /* 為替の自動取得 */
