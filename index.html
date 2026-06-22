@@ -94,10 +94,13 @@
       <div class="field"><label>③ 合計（販売＋送料）</label>
         <div class="inputrow"><span class="unit" id="uT">$</span>
           <input type="number" id="total" inputmode="decimal" placeholder="0"></div></div>
-      <div class="field"><label>④ 仕入れ ¥</label>
+      <div class="field"><label>自己負担送料 ¥（実費）</label>
+        <div class="inputrow"><span class="unit">¥</span>
+          <input type="number" id="selfship" inputmode="numeric" placeholder="0" value="3000"></div></div>
+      <div class="field"><label>仕入れ ¥</label>
         <div class="inputrow"><span class="unit">¥</span>
           <input type="number" id="cost" inputmode="numeric" placeholder="0" value="12000"></div></div>
-      <div class="field"><label>⑤ プロモ率 %</label>
+      <div class="field"><label>プロモ率 %</label>
         <div class="inputrow"><input class="pad-r" type="number" id="promo" inputmode="decimal" placeholder="3" value="3">
           <span class="unit r">%</span></div></div>
       <div class="field"><label>為替 ¥/$</label>
@@ -137,7 +140,7 @@
           <div class="field"><label>還付率(消費税) %</label><input class="pad-plain" type="number" id="refund" inputmode="decimal" value="8"></div>
         </div>
         <button class="reset" id="resetBtn">既定値に戻す</button>
-        <div class="note">①販売価格→②送料が段階表で自動（手動変更も可）→③合計。③合計→送料と販売価格を逆算。送料はUS向けのみ（売上=合計にeBay手数料＋発送コスト計上）。US以外は送料なし。通貨ボタンで①②③を入力（送料表はUSD換算で判定）。手取り＝(合計)−eBay手数料−関税→円換算後Payoneer控除。還付込み＝還付前＋(仕入−仕入/(1+還付率))。為替は1日1回自動取得・入力は自動保存。</div>
+        <div class="note">①販売価格→②送料が段階表で自動（手動変更も可）→③合計。③合計→送料と販売価格を逆算。②送料＝バイヤーに課金する送料（US向けのみ・合計にeBay手数料の対象）。自己負担送料¥＝実際の発送コスト（US/US以外とも実費で控除）。US以外は課金送料・関税なし。通貨ボタンで①②③を入力（送料表はUSD換算で判定）。手取り＝(合計)−eBay手数料−関税→円換算後Payoneer控除−自己負担送料−仕入。還付込み＝還付前＋(仕入−仕入/(1+還付率))。為替は1日1回自動取得・入力は自動保存。</div>
       </div>
     </details>
   </div>
@@ -146,8 +149,8 @@
 <script>
 (function(){
   var SHIP=[[130,150,20],[170,200,30],[210,250,40],[255,300,45],[300,350,50],[345,400,55],[390,450,60],[430,500,70],[520,600,80],[610,700,90],[700,800,100],[780,900,120],[870,1000,130],[960,1100,140],[1040,1200,160],[1130,1300,170],[1220,1400,180],[1300,1500,200],[1390,1600,210],[1480,1700,220],[1570,1800,230],[1650,1900,250],[1740,2000,260],[1830,2100,270],[1910,2200,290],[2000,2300,300],[2090,2400,310],[2170,2500,330]];
-  var calcIds=["cost","promo","fx","tax","fvf","intl","payoneer","duty","dutyF","refund"];
-  var defaults={cost:"12000",promo:"3",fx:"161.31",tax:"10",fvf:"13.25",intl:"1.35",payoneer:"2",duty:"13.1",dutyF:"7",refund:"8"};
+  var calcIds=["selfship","cost","promo","fx","tax","fvf","intl","payoneer","duty","dutyF","refund"];
+  var defaults={selfship:"3000",cost:"12000",promo:"3",fx:"161.31",tax:"10",fvf:"13.25",intl:"1.35",payoneer:"2",duty:"13.1",dutyF:"7",refund:"8"};
   var SYM={USD:"$",EUR:"€",AUD:"A$",GBP:"£"}, NAME={USD:"米ドル",EUR:"ユーロ",AUD:"豪ドル",GBP:"英ポンド"};
   var rates={USD:1, JPY:161.31, EUR:0.92, AUD:1.50, GBP:0.79};
   var cur="USD";
@@ -162,7 +165,7 @@
     if(pId){var p=baseJPY>0?(pre/baseJPY*100):0;$(pId).textContent="粗利率 "+(p>=0?"":"−")+Math.abs(p).toFixed(1)+"%";}}
 
   function compute(){
-    var Pc=num("price"), Lc=num("ship"), cost=num("cost");
+    var Pc=num("price"), Lc=num("ship"), selfYen=num("selfship"), cost=num("cost");
     var promo=num("promo")/100, fx=num("fx"), tax=num("tax")/100;
     var fvf=num("fvf")/100, intl=num("intl")/100, payo=num("payoneer")/100;
     var dutyR=num("duty")/100, dutyF=num("dutyF"), refundR=num("refund")/100;
@@ -170,17 +173,17 @@
     var refund=cost-cost/(1+refundR);
     var baseJPY=Pu*fx;
 
-    // US向け（送料あり：合計に手数料＋発送コスト）
+    // US向け（②送料は課金＝合計に含め売上／自己負担送料は実費で控除）
     var totalU=Pu+Lu;
     var ebayU=totalU*(1+tax)*(fvf+promo+intl);
     var dutyU=Pu*dutyR+dutyF;
-    var usPre=(totalU-ebayU-dutyU)*fx*(1-payo)-Lu*fx-cost;
+    var usPre=(totalU-ebayU-dutyU)*fx*(1-payo)-selfYen-cost;
     setMetric("usPre","usPreP",usPre,baseJPY);
     setMetric("usInc","usIncP",usPre+refund,baseJPY);
 
-    // US以外（送料なし・関税なし）
+    // US以外（課金送料なし・関税なし／自己負担送料は実費で控除）
     var ebayN=Pu*(1+tax)*(fvf+promo+intl);
-    var noPre=(Pu-ebayN)*fx*(1-payo)-cost;
+    var noPre=(Pu-ebayN)*fx*(1-payo)-selfYen-cost;
     setMetric("noPre","noPreP",noPre,baseJPY);
     setMetric("noInc","noIncP",noPre+refund,baseJPY);
 

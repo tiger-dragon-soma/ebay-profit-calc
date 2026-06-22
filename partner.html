@@ -41,20 +41,17 @@
   input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
   input:focus{border-color:var(--accent);}
   #total{border-color:var(--accent); background:var(--accent-soft); color:var(--ink);}
-  .shiptag{font-size:.64rem; color:var(--sub); margin-top:3px; font-weight:600;}
+  .shiptag{font-size:.62rem; color:var(--sub); margin-top:3px; font-weight:600;}
   .fxline{display:flex; align-items:center; gap:7px; margin-top:9px; font-size:.72rem; color:var(--sub);}
   .fxline #fxMarket{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .fxbtn{background:var(--accent-soft); color:var(--accent); border:none; border-radius:7px; padding:5px 9px; font-size:.72rem; font-weight:700; cursor:pointer;}
   .fxbtn:active{opacity:.6;}
-
   .res{border-radius:16px; padding:15px 16px 16px; background:var(--us-soft); margin-bottom:9px;}
   .res h2{margin:0 0 10px; font-size:.92rem; font-weight:800; color:var(--us);}
   .res h2 small{font-weight:600; font-size:.68rem; color:var(--sub); margin-left:4px;}
-  .res .k{font-size:.74rem; color:var(--sub); margin-bottom:2px;}
   .res .v{font-size:2rem; font-weight:800; letter-spacing:-1px; line-height:1.1;}
   .res .v.pos{color:var(--pos);} .res .v.neg{color:var(--neg);}
   .res .pct{font-size:.72rem; color:var(--sub); font-weight:600; margin-top:3px;}
-
   details{margin:0;}
   summary{cursor:pointer; font-size:.76rem; color:var(--sub); font-weight:700; list-style:none; padding:2px;}
   summary::-webkit-details-marker{display:none;}
@@ -74,21 +71,25 @@
       <div class="field"><label>① 販売価格 $</label>
         <div class="inputrow"><span class="unit">$</span>
           <input type="number" id="price" inputmode="decimal" placeholder="0" value="125"></div></div>
-      <div class="field"><label>② 送料 $（自動）</label>
+      <div class="field"><label>② 送料 $（課金・自動）</label>
         <div class="inputrow"><span class="unit">$</span>
           <input type="number" id="ship" inputmode="decimal" placeholder="0" readonly></div>
         <div class="shiptag" id="shipTag">段階1</div></div>
       <div class="field"><label>③ 合計 $（販売＋送料）</label>
         <div class="inputrow"><span class="unit">$</span>
           <input type="number" id="total" inputmode="decimal" placeholder="0"></div></div>
-      <div class="field"><label>④ 仕入れ ¥</label>
+      <div class="field"><label>自己負担送料 ¥（実費）</label>
+        <div class="inputrow"><span class="unit">¥</span>
+          <input type="number" id="selfship" inputmode="numeric" placeholder="0" value="3000"></div></div>
+      <div class="field"><label>仕入れ ¥</label>
         <div class="inputrow"><span class="unit">¥</span>
           <input type="number" id="cost" inputmode="numeric" placeholder="0" value="12000"></div></div>
-      <div class="field"><label>⑤ プロモ率 %</label>
+      <div class="field"><label>プロモ率 %</label>
         <div class="inputrow"><input class="pad-r" type="number" id="promo" inputmode="decimal" placeholder="3" value="3">
           <span class="unit r">%</span></div></div>
       <div class="field"><label>為替 ¥/$</label>
         <div class="inputrow"><input class="pad-plain" type="number" id="fx" inputmode="decimal" value="161.31"></div></div>
+      <div class="field"></div>
     </div>
     <div class="fxline">
       <span id="fxMarket">市場レート 取得中…</span>
@@ -115,7 +116,7 @@
           <div class="field"><label>Duty固定 $</label><input class="pad-plain" type="number" id="dutyF" inputmode="decimal" value="7"></div>
         </div>
         <button class="reset" id="resetBtn">既定値に戻す</button>
-        <div class="note">①販売価格→②送料が段階表で自動。③合計→送料と販売価格が自動。送料はUS向けの売上（合計）に含めeBay手数料の対象＋発送コストとして計上。手取り＝合計−eBay手数料−関税→円換算後Payoneer控除−送料−仕入。為替は1日1回自動取得・入力は自動保存。</div>
+        <div class="note">②送料はバイヤーに課金する送料（段階表で自動）＝売上に含めeBay手数料の対象。自己負担送料¥は実際の発送コスト（別途差し引き）。①販売→②送料自動→③合計／③合計→送料と販売を逆算。手取り＝合計−eBay手数料−関税→円換算後Payoneer控除−自己負担送料−仕入。為替は1日1回自動取得・入力は自動保存。</div>
       </div>
     </details>
   </div>
@@ -123,59 +124,46 @@
 
 <script>
 (function(){
-  // {R: 商品価格上限(=F-L), F: 送料込み上限, L: 送料}
   var SHIP=[[130,150,20],[170,200,30],[210,250,40],[255,300,45],[300,350,50],[345,400,55],[390,450,60],[430,500,70],[520,600,80],[610,700,90],[700,800,100],[780,900,120],[870,1000,130],[960,1100,140],[1040,1200,160],[1130,1300,170],[1220,1400,180],[1300,1500,200],[1390,1600,210],[1480,1700,220],[1570,1800,230],[1650,1900,250],[1740,2000,260],[1830,2100,270],[1910,2200,290],[2000,2300,300],[2090,2400,310],[2170,2500,330]];
-  var calcIds=["price","cost","promo","fx","tax","fvf","intl","payoneer","duty","dutyF"];
-  var defaults={price:"125",cost:"12000",promo:"3",fx:"161.31",tax:"10",fvf:"13.25",intl:"1.35",payoneer:"2",duty:"13.1",dutyF:"7"};
+  var calcIds=["selfship","cost","promo","fx","tax","fvf","intl","payoneer","duty","dutyF"];
+  var defaults={selfship:"3000",cost:"12000",promo:"3",fx:"161.31",tax:"10",fvf:"13.25",intl:"1.35",payoneer:"2",duty:"13.1",dutyF:"7"};
   var $=function(id){return document.getElementById(id);};
   var num=function(id){var v=parseFloat($(id).value);return isFinite(v)?v:0;};
   function yen(n){var r=Math.round(n);return (r<0?"−¥":"¥")+Math.abs(r).toLocaleString("ja-JP");}
   function r2(n){return Math.round(n*100)/100;}
-  // 商品価格 P → 段階（P<=R の最初）
   function tierByPrice(P){for(var i=0;i<SHIP.length;i++){if(P<=SHIP[i][0])return i;}return SHIP.length-1;}
-  // 合計 T → 段階（T<F の最初）
   function tierByTotal(T){for(var i=0;i<SHIP.length;i++){if(T<SHIP[i][1])return i;}return SHIP.length-1;}
 
   function compute(){
-    var P=num("price"), ship=num("ship"), cost=num("cost");
+    var P=num("price"), shipCharged=num("ship"), selfYen=num("selfship"), cost=num("cost");
     var promo=num("promo")/100, fx=num("fx"), tax=num("tax")/100;
     var fvf=num("fvf")/100, intl=num("intl")/100, payo=num("payoneer")/100;
     var dutyR=num("duty")/100, dutyF=num("dutyF");
 
-    var total=P+ship;                                  // 合計（買い手支払い）
-    var ebayFees=total*(1+tax)*(fvf+promo+intl);       // eBay手数料は合計ベース
-    var duty=P*dutyR+dutyF;                             // 関税は商品価格ベース
-    var netUSD=total-ebayFees-duty;
-    var netYen=netUSD*fx*(1-payo);
-    var pre=netYen-ship*fx-cost;                        // 送料(発送コスト)・仕入を円で控除
+    var total=P+shipCharged;                              // 合計（買い手支払い）
+    var ebayFees=total*(1+tax)*(fvf+promo+intl);          // eBay手数料は合計ベース
+    var duty=P*dutyR+dutyF;                                // 関税は商品価格ベース
+    var pre=(total-ebayFees-duty)*fx*(1-payo)-selfYen-cost; // 実費の自己負担送料・仕入を控除
     var baseJPY=P*fx;
     var el=$("usPre"); el.textContent=yen(pre); el.className="v "+(pre>=0?"pos":"neg");
     $("usPreP").textContent="粗利率 "+(baseJPY>0?(pre/baseJPY*100>=0?"":"−")+Math.abs(pre/baseJPY*100).toFixed(1):"0.0")+"%";
 
-    try{var o={};calcIds.forEach(function(k){o[k]=$(k).value;});o.ship=$("ship").value;localStorage.setItem("ebayProfitCalcPartner",JSON.stringify(o));}catch(e){}
+    try{var o={};calcIds.forEach(function(k){o[k]=$(k).value;});o.price=$("price").value;o.ship=$("ship").value;localStorage.setItem("ebayProfitCalcPartner",JSON.stringify(o));}catch(e){}
   }
-  function setShipTag(i,over){$("shipTag").textContent="段階"+(i+1)+(over?"（表上限超）":"");}
-  // 販売価格から：送料・合計を埋める
-  function fromPrice(){
-    var P=num("price"); var i=tierByPrice(P); var over=P>SHIP[SHIP.length-1][0];
-    $("ship").value=SHIP[i][2]; $("total").value=r2(P+SHIP[i][2]); setShipTag(i,over); compute();
-  }
-  // 合計から：送料・販売価格を埋める
-  function fromTotal(){
-    var T=num("total"); var i=tierByTotal(T); var over=T>=SHIP[SHIP.length-1][1];
-    var L=SHIP[i][2]; $("ship").value=L; $("price").value=r2(Math.max(0,T-L)); setShipTag(i,over); compute();
-  }
+  function setTag(i,over){$("shipTag").textContent="段階"+(i+1)+(over?"（表上限超）":"");}
+  function fromPrice(){var P=num("price");var i=tierByPrice(P);$("ship").value=SHIP[i][2];$("total").value=r2(P+SHIP[i][2]);setTag(i,P>SHIP[SHIP.length-1][0]);compute();}
+  function fromTotal(){var T=num("total");var i=tierByTotal(T);var L=SHIP[i][2];$("ship").value=L;$("price").value=r2(Math.max(0,T-L));setTag(i,T>=SHIP[SHIP.length-1][1]);compute();}
 
   try{var saved=JSON.parse(localStorage.getItem("ebayProfitCalcPartner")||"null");
-    if(saved){calcIds.forEach(function(k){if(saved[k]!==undefined)$(k).value=saved[k];});}}catch(e){}
+    if(saved){calcIds.forEach(function(k){if(saved[k]!==undefined)$(k).value=saved[k];});if(saved.price!==undefined)$("price").value=saved.price;}}catch(e){}
 
   $("price").addEventListener("input",fromPrice);
   $("total").addEventListener("input",fromTotal);
-  ["cost","promo","fx","tax","fvf","intl","payoneer","duty","dutyF"].forEach(function(k){$(k).addEventListener("input",compute);});
+  ["selfship","cost","promo","fx","tax","fvf","intl","payoneer","duty","dutyF"].forEach(function(k){$(k).addEventListener("input",compute);});
   $("resetBtn").addEventListener("click",function(){calcIds.forEach(function(k){$(k).value=defaults[k];});fromPrice();});
   fromPrice();
 
-  /* 為替の自動取得（1日1回キャッシュ・非同期・失敗しても無害） */
+  /* 為替の自動取得 */
   function todayStr(){var d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
   function showMarket(m){$("fxMarket").textContent=m?("市場レート ¥"+m.rates.JPY.toFixed(2)+"（"+m.date+"）"):"市場レート 取得できず（手動でOK）";}
   function fetchRate(){
