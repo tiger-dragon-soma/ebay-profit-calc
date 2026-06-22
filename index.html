@@ -21,59 +21,47 @@
     }
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  body{
-    margin:0; background:var(--bg); color:var(--ink);
+  body{margin:0; background:var(--bg); color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
-    font-size:16px; line-height:1.35; padding:8px 10px 16px;
-  }
+    font-size:16px; line-height:1.35; padding:8px 10px 16px;}
   .wrap{max-width:520px; margin:0 auto;}
-
   .curseg{display:flex; gap:6px; margin-bottom:9px;}
-  .curseg button{
-    flex:1; border:1.5px solid var(--line); background:var(--card); color:var(--sub);
-    border-radius:11px; padding:11px 0; font-size:.9rem; font-weight:800; cursor:pointer;
-    transition:all .12s;
-  }
+  .curseg button{flex:1; border:1.5px solid var(--line); background:var(--card); color:var(--sub);
+    border-radius:11px; padding:11px 0; font-size:.9rem; font-weight:800; cursor:pointer; transition:all .12s;}
   .curseg button.on{background:var(--accent); border-color:var(--accent); color:#fff;}
-
   h1{font-size:.82rem; margin:0 2px 8px; display:flex; align-items:center; gap:6px; color:var(--sub); font-weight:700;}
   h1 .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
-
   .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:10px; margin-bottom:9px;}
   .grid{display:grid; grid-template-columns:1fr 1fr; gap:8px 10px;}
   .field label{display:block; font-size:.7rem; color:var(--sub); margin-bottom:3px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .inputrow{position:relative; display:flex; align-items:center;}
   .unit{position:absolute; left:10px; color:var(--sub); font-size:.82rem; font-weight:700; pointer-events:none;}
   .unit.r{left:auto; right:11px; font-weight:600;}
-  input[type=number]{
-    width:100%; border:1.5px solid var(--line); background:var(--field); color:var(--ink);
-    border-radius:10px; padding:9px 11px 9px 30px; font-size:1rem; font-weight:700;
-    outline:none; transition:border-color .15s; -moz-appearance:textfield;
-  }
+  input[type=number]{width:100%; border:1.5px solid var(--line); background:var(--field); color:var(--ink);
+    border-radius:10px; padding:9px 11px 9px 30px; font-size:1rem; font-weight:700; outline:none; transition:border-color .15s; -moz-appearance:textfield;}
   input.pad-r{padding:9px 26px 9px 11px;}
   input.pad-plain{padding:9px 11px;}
   input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
   input:focus{border-color:var(--accent);}
-
+  #total{border-color:var(--accent); background:var(--accent-soft);}
+  .shiptag{font-size:.62rem; color:var(--sub); margin-top:3px; font-weight:600;}
   .conv{font-size:.66rem; color:var(--accent); font-weight:700; margin-top:8px;}
   .fxline{display:flex; align-items:center; gap:7px; margin-top:7px; font-size:.72rem; color:var(--sub);}
   .fxline #fxMarket{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .fxbtn{background:var(--accent-soft); color:var(--accent); border:none; border-radius:7px; padding:5px 9px; font-size:.72rem; font-weight:700; cursor:pointer;}
   .fxbtn:active{opacity:.6;}
-
   .results{display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:9px;}
   .res{border-radius:14px; padding:11px 11px 12px;}
   .res.us{background:var(--us-soft);} .res.non{background:var(--accent-soft);}
   .res h2{margin:0 0 9px; font-size:.85rem; font-weight:800;}
   .res.us h2{color:var(--us);} .res.non h2{color:var(--accent);}
-  .res h2 small{font-weight:600; font-size:.66rem; color:var(--sub); margin-left:3px;}
+  .res h2 small{font-weight:600; font-size:.64rem; color:var(--sub); margin-left:3px;}
   .metric{margin-bottom:9px;}
   .metric:last-child{margin-bottom:0;}
   .metric .k{font-size:.68rem; color:var(--sub); margin-bottom:0;}
   .metric .v{font-size:1.3rem; font-weight:800; letter-spacing:-.5px; line-height:1.15;}
   .metric .v.pos{color:var(--pos);} .metric .v.neg{color:var(--neg);}
   .metric .pct{font-size:.66rem; color:var(--sub); font-weight:600;}
-
   details{margin:0;}
   summary{cursor:pointer; font-size:.76rem; color:var(--sub); font-weight:700; list-style:none; padding:2px;}
   summary::-webkit-details-marker{display:none;}
@@ -86,14 +74,12 @@
 </head>
 <body>
 <div class="wrap">
-
   <div class="curseg" id="curSeg">
     <button type="button" data-cur="USD" class="on">USD&nbsp;$</button>
     <button type="button" data-cur="EUR">EUR&nbsp;€</button>
     <button type="button" data-cur="AUD">AUD&nbsp;A$</button>
     <button type="button" data-cur="GBP">GBP&nbsp;£</button>
   </div>
-
   <h1><span class="dot"></span>eBay 利益計算 — <span id="curName">米ドル</span> ベース</h1>
 
   <div class="card">
@@ -101,12 +87,13 @@
       <div class="field"><label>① 販売価格</label>
         <div class="inputrow"><span class="unit" id="uP">$</span>
           <input type="number" id="price" inputmode="decimal" placeholder="0" value="125"></div></div>
-      <div class="field"><label>② 徴収 送料/関税</label>
-        <div class="inputrow"><span class="unit" id="uC">$</span>
-          <input type="number" id="collect" inputmode="decimal" placeholder="0" value="0"></div></div>
-      <div class="field"><label>③ 自己負担送料 ¥</label>
-        <div class="inputrow"><span class="unit">¥</span>
-          <input type="number" id="ship" inputmode="numeric" placeholder="0" value="3000"></div></div>
+      <div class="field"><label>② 送料（US・自動／変更可）</label>
+        <div class="inputrow"><span class="unit" id="uS">$</span>
+          <input type="number" id="ship" inputmode="decimal" placeholder="0"></div>
+        <div class="shiptag" id="shipTag">段階1</div></div>
+      <div class="field"><label>③ 合計（販売＋送料）</label>
+        <div class="inputrow"><span class="unit" id="uT">$</span>
+          <input type="number" id="total" inputmode="decimal" placeholder="0"></div></div>
       <div class="field"><label>④ 仕入れ ¥</label>
         <div class="inputrow"><span class="unit">¥</span>
           <input type="number" id="cost" inputmode="numeric" placeholder="0" value="12000"></div></div>
@@ -125,12 +112,12 @@
 
   <div class="results">
     <div class="res us">
-      <h2>① US向け <small>関税あり</small></h2>
+      <h2>① US向け <small>関税・送料あり</small></h2>
       <div class="metric"><div class="k">還付前 粗利</div><div class="v" id="usPre">–</div><div class="pct" id="usPreP"></div></div>
       <div class="metric"><div class="k">還付込み 粗利</div><div class="v" id="usInc">–</div><div class="pct" id="usIncP"></div></div>
     </div>
     <div class="res non">
-      <h2>② US以外 <small>関税なし</small></h2>
+      <h2>② US以外 <small>関税・送料なし</small></h2>
       <div class="metric"><div class="k">還付前 粗利</div><div class="v" id="noPre">–</div><div class="pct" id="noPreP"></div></div>
       <div class="metric"><div class="k">還付込み 粗利</div><div class="v" id="noInc">–</div><div class="pct" id="noIncP"></div></div>
     </div>
@@ -145,12 +132,12 @@
           <div class="field"><label>eBay FVF %</label><input class="pad-plain" type="number" id="fvf" inputmode="decimal" value="13.25"></div>
           <div class="field"><label>海外手数料 %</label><input class="pad-plain" type="number" id="intl" inputmode="decimal" value="1.35"></div>
           <div class="field"><label>Payoneer %</label><input class="pad-plain" type="number" id="payoneer" inputmode="decimal" value="2"></div>
-          <div class="field"><label>関税 Duty %</label><input class="pad-plain" type="number" id="duty" inputmode="decimal" value="12.1"></div>
+          <div class="field"><label>関税 Duty %</label><input class="pad-plain" type="number" id="duty" inputmode="decimal" value="13.1"></div>
           <div class="field"><label>Duty固定 $</label><input class="pad-plain" type="number" id="dutyF" inputmode="decimal" value="7"></div>
           <div class="field"><label>還付率(消費税) %</label><input class="pad-plain" type="number" id="refund" inputmode="decimal" value="8"></div>
         </div>
         <button class="reset" id="resetBtn">既定値に戻す</button>
-        <div class="note">通貨ボタンで選んだ通貨で①②を入力→USD換算して計算（US向け関税は商品額×<span id="tDuty">12.1</span>%＋$<span id="tDutyF">7</span>）。手取り＝(売上＋徴収)−eBay手数料−関税→円換算後Payoneer控除。還付込み＝還付前＋(仕入−仕入/(1+還付率))。為替は1日1回自動取得・入力は自動保存。</div>
+        <div class="note">①販売価格→②送料が段階表で自動（手動変更も可）→③合計。③合計→送料と販売価格を逆算。送料はUS向けのみ（売上=合計にeBay手数料＋発送コスト計上）。US以外は送料なし。通貨ボタンで①②③を入力（送料表はUSD換算で判定）。手取り＝(合計)−eBay手数料−関税→円換算後Payoneer控除。還付込み＝還付前＋(仕入−仕入/(1+還付率))。為替は1日1回自動取得・入力は自動保存。</div>
       </div>
     </details>
   </div>
@@ -158,83 +145,87 @@
 
 <script>
 (function(){
-  var ids=["price","collect","ship","cost","promo","fx","tax","fvf","intl","payoneer","duty","dutyF","refund"];
-  var defaults={price:"125",collect:"0",ship:"3000",cost:"12000",promo:"3",fx:"161.31",tax:"10",fvf:"13.25",intl:"1.35",payoneer:"2",duty:"12.1",dutyF:"7",refund:"8"};
-  var SYM={USD:"$",EUR:"€",AUD:"A$",GBP:"£"};
-  var NAME={USD:"米ドル",EUR:"ユーロ",AUD:"豪ドル",GBP:"英ポンド"};
-  // CUR per 1 USD（frankfurter base=USD）。取得前の暫定値。
+  var SHIP=[[130,150,20],[170,200,30],[210,250,40],[255,300,45],[300,350,50],[345,400,55],[390,450,60],[430,500,70],[520,600,80],[610,700,90],[700,800,100],[780,900,120],[870,1000,130],[960,1100,140],[1040,1200,160],[1130,1300,170],[1220,1400,180],[1300,1500,200],[1390,1600,210],[1480,1700,220],[1570,1800,230],[1650,1900,250],[1740,2000,260],[1830,2100,270],[1910,2200,290],[2000,2300,300],[2090,2400,310],[2170,2500,330]];
+  var calcIds=["cost","promo","fx","tax","fvf","intl","payoneer","duty","dutyF","refund"];
+  var defaults={cost:"12000",promo:"3",fx:"161.31",tax:"10",fvf:"13.25",intl:"1.35",payoneer:"2",duty:"13.1",dutyF:"7",refund:"8"};
+  var SYM={USD:"$",EUR:"€",AUD:"A$",GBP:"£"}, NAME={USD:"米ドル",EUR:"ユーロ",AUD:"豪ドル",GBP:"英ポンド"};
   var rates={USD:1, JPY:161.31, EUR:0.92, AUD:1.50, GBP:0.79};
   var cur="USD";
   var $=function(id){return document.getElementById(id);};
   var num=function(id){var v=parseFloat($(id).value);return isFinite(v)?v:0;};
-
   function yen(n){var r=Math.round(n);return (r<0?"−¥":"¥")+Math.abs(r).toLocaleString("ja-JP");}
-  function usd(n){return "$"+n.toFixed(2);}
-  function setMetric(vId,pId,pre,baseJPY){
-    var el=$(vId); el.textContent=yen(pre); el.className="v "+(pre>=0?"pos":"neg");
-    if(pId){var p=baseJPY>0?(pre/baseJPY*100):0;$(pId).textContent="粗利率 "+(p>=0?"":"−")+Math.abs(p).toFixed(1)+"%";}
-  }
+  function r2(n){return Math.round(n*100)/100;}
   function rate(){return rates[cur]||1;}
+  function tierByPrice(P){for(var i=0;i<SHIP.length;i++){if(P<=SHIP[i][0])return i;}return SHIP.length-1;}
+  function tierByTotal(T){for(var i=0;i<SHIP.length;i++){if(T<SHIP[i][1])return i;}return SHIP.length-1;}
+  function setMetric(vId,pId,pre,baseJPY){var el=$(vId);el.textContent=yen(pre);el.className="v "+(pre>=0?"pos":"neg");
+    if(pId){var p=baseJPY>0?(pre/baseJPY*100):0;$(pId).textContent="粗利率 "+(p>=0?"":"−")+Math.abs(p).toFixed(1)+"%";}}
 
-  function calc(){
-    var Pin=num("price"), colIn=num("collect"), ship=num("ship"), cost=num("cost");
+  function compute(){
+    var Pc=num("price"), Lc=num("ship"), cost=num("cost");
     var promo=num("promo")/100, fx=num("fx"), tax=num("tax")/100;
     var fvf=num("fvf")/100, intl=num("intl")/100, payo=num("payoneer")/100;
     var dutyR=num("duty")/100, dutyF=num("dutyF"), refundR=num("refund")/100;
-
-    // 選択通貨 → USD 換算
-    var P=Pin/rate(), col=colIn/rate();
-
-    var base=P+col;
-    var ebayFees=base*(1+tax)*(fvf+promo+intl);
-    var dutyUS=P*dutyR+dutyF;
+    var Pu=Pc/rate(), Lu=Lc/rate();           // 選択通貨 → USD
     var refund=cost-cost/(1+refundR);
-    var toJPY=function(u){return u*fx*(1-payo);};
-    var baseJPY=P*fx;
+    var baseJPY=Pu*fx;
 
-    var usPre=toJPY(base-ebayFees-dutyUS)-ship-cost;
+    // US向け（送料あり：合計に手数料＋発送コスト）
+    var totalU=Pu+Lu;
+    var ebayU=totalU*(1+tax)*(fvf+promo+intl);
+    var dutyU=Pu*dutyR+dutyF;
+    var usPre=(totalU-ebayU-dutyU)*fx*(1-payo)-Lu*fx-cost;
     setMetric("usPre","usPreP",usPre,baseJPY);
     setMetric("usInc","usIncP",usPre+refund,baseJPY);
 
-    var noPre=toJPY(base-ebayFees)-ship-cost;
+    // US以外（送料なし・関税なし）
+    var ebayN=Pu*(1+tax)*(fvf+promo+intl);
+    var noPre=(Pu-ebayN)*fx*(1-payo)-cost;
     setMetric("noPre","noPreP",noPre,baseJPY);
     setMetric("noInc","noIncP",noPre+refund,baseJPY);
 
-    // USD換算の表示（USD以外のとき）
-    if(cur==="USD"){ $("convLine").textContent=""; }
-    else{
-      var t="USD換算 → 販売 "+usd(P);
-      if(colIn>0) t+=" / 徴収 "+usd(col);
-      t+="（"+SYM[cur]+"1 = "+usd(1/rate())+"）";
-      $("convLine").textContent=t;
-    }
+    if(cur==="USD"){$("convLine").textContent="";}
+    else{$("convLine").textContent="USD換算 → 販売 $"+r2(Pu)+" / 送料 $"+r2(Lu)+" / 合計 $"+r2(Pu+Lu);}
 
-    $("tDuty").textContent=num("duty"); $("tDutyF").textContent=num("dutyF");
-    try{var o={};ids.forEach(function(k){o[k]=$(k).value;});o.__cur=cur;localStorage.setItem("ebayProfitCalc",JSON.stringify(o));}catch(e){}
+    try{var o={};calcIds.forEach(function(k){o[k]=$(k).value;});o.price=$("price").value;o.ship=$("ship").value;o.__cur=cur;localStorage.setItem("ebayProfitCalc",JSON.stringify(o));}catch(e){}
   }
-
+  function setTag(i,over){$("shipTag").textContent="段階"+(i+1)+(over?"（表上限超）":"");}
+  function fromPrice(){
+    var Pc=num("price"), Pu=Pc/rate(); var i=tierByPrice(Pu); var Lc=SHIP[i][2]*rate();
+    $("ship").value=r2(Lc); $("total").value=r2(Pc+Lc); setTag(i,Pu>SHIP[SHIP.length-1][0]); compute();
+  }
+  function fromShip(){ $("total").value=r2(num("price")+num("ship")); compute(); }   // 手動送料：合計だけ更新
+  function fromTotal(){
+    var Tc=num("total"), Tu=Tc/rate(); var i=tierByTotal(Tu); var Lc=SHIP[i][2]*rate();
+    $("ship").value=r2(Lc); $("price").value=r2(Math.max(0,Tc-Lc)); setTag(i,Tu>=SHIP[SHIP.length-1][1]); compute();
+  }
   function applyCur(c){
+    var Pu=num("price")/rate();               // 旧通貨でのUSD価格を保持
     cur=c;
-    var btns=$("curSeg").getElementsByTagName("button");
-    for(var i=0;i<btns.length;i++){btns[i].className=(btns[i].getAttribute("data-cur")===c?"on":"");}
-    $("uP").textContent=SYM[c]; $("uC").textContent=SYM[c]; $("curName").textContent=NAME[c];
-    calc();
+    var b=$("curSeg").getElementsByTagName("button");
+    for(var i=0;i<b.length;i++){b[i].className=(b[i].getAttribute("data-cur")===c?"on":"");}
+    $("uP").textContent=SYM[c]; $("uS").textContent=SYM[c]; $("uT").textContent=SYM[c]; $("curName").textContent=NAME[c];
+    $("price").value=r2(Pu*rate());           // 新通貨へ換算してから送料・合計を引き直し
+    fromPrice();
   }
 
-  // restore
   try{var saved=JSON.parse(localStorage.getItem("ebayProfitCalc")||"null");
-    if(saved){ids.forEach(function(k){if(saved[k]!==undefined)$(k).value=saved[k];}); if(saved.__cur&&SYM[saved.__cur])cur=saved.__cur;}}catch(e){}
+    if(saved){calcIds.forEach(function(k){if(saved[k]!==undefined)$(k).value=saved[k];});
+      if(saved.price!==undefined)$("price").value=saved.price; if(saved.__cur&&SYM[saved.__cur])cur=saved.__cur;}}catch(e){}
 
-  var segBtns=$("curSeg").getElementsByTagName("button");
-  for(var i=0;i<segBtns.length;i++){segBtns[i].addEventListener("click",function(){applyCur(this.getAttribute("data-cur"));});}
-  ids.forEach(function(k){$(k).addEventListener("input",calc);});
-  $("resetBtn").addEventListener("click",function(){ids.forEach(function(k){$(k).value=defaults[k];});calc();});
+  var seg=$("curSeg").getElementsByTagName("button");
+  for(var i=0;i<seg.length;i++){seg[i].addEventListener("click",function(){applyCur(this.getAttribute("data-cur"));});}
+  $("price").addEventListener("input",fromPrice);
+  $("ship").addEventListener("input",fromShip);
+  $("total").addEventListener("input",fromTotal);
+  calcIds.forEach(function(k){$(k).addEventListener("input",compute);});
+  $("resetBtn").addEventListener("click",function(){calcIds.forEach(function(k){$(k).value=defaults[k];});fromPrice();});
   applyCur(cur);
 
   /* 為替の自動取得（1日1回キャッシュ・非同期・失敗しても無害） */
   function todayStr(){var d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
   function showMarket(m){$("fxMarket").textContent=m?("市場レート ¥"+m.rates.JPY.toFixed(2)+"（"+m.date+"）"):"市場レート 取得できず（手動でOK）";}
-  function applyRates(m){ if(m&&m.rates){ ["JPY","EUR","AUD","GBP"].forEach(function(k){if(m.rates[k])rates[k]=m.rates[k];}); } }
+  function applyRates(m){if(m&&m.rates){["JPY","EUR","AUD","GBP"].forEach(function(k){if(m.rates[k])rates[k]=m.rates[k];});}}
   function fetchRate(){
     return fetch("https://api.frankfurter.dev/v1/latest?base=USD&symbols=JPY,EUR,AUD,GBP")
       .then(function(r){return r.json();})
@@ -245,16 +236,15 @@
   function loadRate(force,applyFx){
     var key="ebayFxMarket";
     if(!force){try{var c=JSON.parse(localStorage.getItem(key)||"null");if(c&&c.fetchedDay===todayStr()){window.__fxMarket=c;applyRates(c);showMarket(c);
-      // 起動時：手動で為替を変えてなければ最新を反映
       try{var s0=JSON.parse(localStorage.getItem("ebayProfitCalc")||"null");if(!s0||s0.fx===undefined||s0.fx===defaults.fx){$("fx").value=c.rates.JPY;}}catch(e){}
-      calc();return;}}catch(e){}}
+      fromPrice();return;}}catch(e){}}
     $("fxMarket").textContent="市場レート 取得中…";
     fetchRate().then(function(m){
       m.fetchedDay=todayStr(); window.__fxMarket=m; applyRates(m); showMarket(m);
       try{localStorage.setItem(key,JSON.stringify(m));}catch(e){}
-      if(applyFx){ $("fx").value=m.rates.JPY; }            // ボタン押下時は必ず反映
+      if(applyFx){ $("fx").value=m.rates.JPY; }
       else { try{var s=JSON.parse(localStorage.getItem("ebayProfitCalc")||"null");if(!s||s.fx===undefined||s.fx===defaults.fx){$("fx").value=m.rates.JPY;}}catch(e){} }
-      calc();
+      fromPrice();
     }).catch(function(){showMarket(null);});
   }
   $("fxRefresh").addEventListener("click",function(){loadRate(true,true);});
