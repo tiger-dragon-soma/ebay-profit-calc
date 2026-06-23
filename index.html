@@ -33,6 +33,9 @@
   h1 .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
   .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:10px; margin-bottom:9px;}
   .grid{display:grid; grid-template-columns:1fr 1fr; gap:8px 10px;}
+  .grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px 7px; margin-bottom:8px;}
+  .grid3 input{padding-left:24px; font-size:.95rem;}
+  .grid3 .unit{left:8px; font-size:.78rem;}
   .field label{display:block; font-size:.7rem; color:var(--sub); margin-bottom:3px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .inputrow{position:relative; display:flex; align-items:center;}
   .unit{position:absolute; left:10px; color:var(--sub); font-size:.82rem; font-weight:700; pointer-events:none;}
@@ -82,17 +85,19 @@
   <h1><span class="dot"></span>eBay 利益計算 — <span id="curName">米ドル</span> ベース</h1>
 
   <div class="card">
-    <div class="grid">
+    <div class="grid3">
       <div class="field"><label>① 販売価格</label>
         <div class="inputrow"><span class="unit" id="uP">$</span>
           <input type="text" id="price" inputmode="decimal" placeholder="0" value="125"></div></div>
-      <div class="field"><label>② 送料（US・自動／変更可）</label>
+      <div class="field"><label>② 送料(自動)</label>
         <div class="inputrow"><span class="unit" id="uS">$</span>
           <input type="text" id="ship" inputmode="decimal" placeholder="0"></div>
         <div class="shiptag" id="shipTag">段階1</div></div>
-      <div class="field"><label>③ 合計（販売＋送料）</label>
+      <div class="field"><label>③ 合計</label>
         <div class="inputrow"><span class="unit" id="uT">$</span>
           <input type="text" id="total" inputmode="decimal" placeholder="0"></div></div>
+    </div>
+    <div class="grid">
       <div class="field"><label>自己負担送料 ¥（実費）</label>
         <div class="inputrow"><span class="unit">¥</span>
           <input type="text" id="selfship" inputmode="numeric" placeholder="0" value="3000"></div></div>
