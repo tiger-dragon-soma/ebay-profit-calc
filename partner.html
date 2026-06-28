@@ -48,6 +48,8 @@
   input:focus{border-color:var(--accent);}
   input.hasclr{padding-right:28px;}
   .grid3 input.hasclr{padding-right:24px;}
+  input.hasclr-u{padding-right:46px;}
+  .inputrow .clr.clr-u{right:25px;}
   .inputrow .clr{position:absolute; right:5px; top:50%; transform:translateY(-50%);
     width:18px; height:18px; padding:0; border:none; border-radius:50%;
     background:var(--line); color:var(--sub); font-size:.82rem; line-height:1; font-weight:700;
@@ -91,7 +93,8 @@
         <div class="shiptag" id="shipTag">段階1</div></div>
       <div class="field"><label class="lbl3">③ 最終価格<span class="f">（①＋②）</span></label>
         <div class="inputrow"><span class="unit">$</span>
-          <input type="text" id="total" inputmode="decimal" placeholder="0"></div></div>
+          <input class="hasclr" type="text" id="total" inputmode="decimal" placeholder="0">
+          <button type="button" class="clr" data-clr="total" aria-label="クリア">×</button></div></div>
     </div>
     <div class="grid">
       <div class="field"><label>仕入れ ¥</label>
@@ -103,7 +106,8 @@
           <input class="hasclr" type="text" id="selfship" inputmode="numeric" placeholder="0" value="3000">
           <button type="button" class="clr" data-clr="selfship" aria-label="クリア">×</button></div></div>
       <div class="field"><label>プロモ率 %</label>
-        <div class="inputrow"><input class="pad-r" type="number" id="promo" inputmode="decimal" placeholder="3" value="3">
+        <div class="inputrow"><input class="pad-r hasclr-u" type="number" id="promo" inputmode="decimal" placeholder="3" value="3">
+          <button type="button" class="clr clr-u" data-clr="promo" aria-label="クリア">×</button>
           <span class="unit r">%</span></div></div>
       <div class="field"><label>為替 ¥/$</label>
         <div class="inputrow"><input class="pad-plain" type="number" id="fx" inputmode="decimal" value="161.31"></div></div>
@@ -195,7 +199,7 @@
   ["promo","fx","tax","fvf","intl","payoneer","duty","dutyF"].forEach(function(k){$(k).addEventListener("input",compute);});
   $("resetBtn").addEventListener("click",function(){calcIds.forEach(function(k){$(k).value=defaults[k];});moneyIds.forEach(function(id){if($(id).value!=="")setMoney(id,num(id));});fromPrice();});
   // クリア「×」ボタン：欄を空にして該当ハンドラを呼ぶ
-  var clrHandlers={price:fromPrice,cost:compute,selfship:compute};
+  var clrHandlers={price:fromPrice,total:fromTotal,cost:compute,selfship:compute,promo:compute};
   var clrBtns=document.querySelectorAll(".clr");
   for(var ck=0;ck<clrBtns.length;ck++){clrBtns[ck].addEventListener("click",function(){
     var id=this.getAttribute("data-clr");$(id).value="";$(id).focus();(clrHandlers[id]||compute)();});}
