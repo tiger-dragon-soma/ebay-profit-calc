@@ -156,13 +156,14 @@
   function comma(n){if(n===""||n===null||!isFinite(n))return "";var neg=n<0,x=Math.abs(Math.round(n*100)/100),p=(""+x).split(".");p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,",");return (neg?"-":"")+(p.length>1?p[0]+"."+p[1]:p[0]);}
   function setMoney(id,n){$(id).value=comma(n);}
   function reformat(el){
-    var caret=el.selectionStart||0, before=el.value.slice(0,caret).replace(/[^\d]/g,"").length;
+    // カーソル位置は「数字＋小数点」を有意文字として数える（末尾の.を飛ばさないため）
+    var caret=el.selectionStart||0, before=el.value.slice(0,caret).replace(/[^\d.]/g,"").length;
     var cl=el.value.replace(/[^\d.]/g,""), dot=cl.indexOf("."), ip,fp="";
     if(dot>=0){ip=cl.slice(0,dot).replace(/\./g,"");fp=cl.slice(dot+1).replace(/\./g,"");}else ip=cl;
     ip=ip.replace(/^0+(?=\d)/,"");
     var out=ip.replace(/\B(?=(\d{3})+(?!\d))/g,",")+(dot>=0?"."+fp:"");
     el.value=out;
-    var pos=0,cnt=0; while(pos<out.length&&cnt<before){if(/\d/.test(out[pos]))cnt++;pos++;}
+    var pos=0,cnt=0; while(pos<out.length&&cnt<before){if(/[\d.]/.test(out[pos]))cnt++;pos++;}
     try{el.setSelectionRange(pos,pos);}catch(e){}
   }
   function tierByPrice(P){for(var i=0;i<SHIP.length;i++){if(P<=SHIP[i][0])return i;}return SHIP.length-1;}
