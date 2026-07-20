@@ -25,10 +25,16 @@
     font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
     font-size:16px; line-height:1.35; padding:8px 10px 16px;}
   .wrap{max-width:520px; margin:0 auto;}
-  .curseg{display:flex; gap:6px; margin-bottom:9px;}
-  .curseg button{flex:1; border:1.5px solid var(--line); background:var(--card); color:var(--sub);
-    border-radius:11px; padding:11px 0; font-size:.9rem; font-weight:800; cursor:pointer; transition:all .12s;}
-  .curseg button.on{background:var(--accent); border-color:var(--accent); color:#fff;}
+  /* コントロールバー：モード/宛先/決済/通貨を1行に集約（入らなければ折り返す） */
+  .ctlbar{display:flex; flex-wrap:wrap; gap:5px; margin-bottom:9px;}
+  .seg{display:flex; gap:3px; flex:1 1 auto; min-width:0;
+    background:var(--field); border:1px solid var(--line); border-radius:9px; padding:2px;}
+  .seg button{flex:1 1 auto; min-width:0; border:none; background:none; color:var(--sub);
+    border-radius:7px; padding:7px 5px; font-size:.68rem; font-weight:800; cursor:pointer;
+    white-space:nowrap; transition:all .12s;}
+  .seg button.on{background:var(--accent); color:#fff;}
+  #modeSeg{flex:0 0 auto;}
+  #modeSeg button.on{background:var(--ink); color:var(--card);}
   h1{font-size:.82rem; margin:0 2px 8px; display:flex; align-items:center; gap:6px; color:var(--sub); font-weight:700;}
   h1 .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
   .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:10px; margin-bottom:9px;}
@@ -66,15 +72,11 @@
   .fxbtn{background:var(--accent-soft); color:var(--accent); border:none; border-radius:7px; padding:5px 9px; font-size:.72rem; font-weight:700; cursor:pointer;}
   .fxbtn:active{opacity:.6;}
   /* --- モード切替（eBay / 直取）--- */
-  .modeseg{display:flex; gap:6px; margin-bottom:9px;}
-  .modeseg button{flex:1; border:1.5px solid var(--line); background:var(--card); color:var(--sub);
-    border-radius:11px; padding:12px 0; font-size:.95rem; font-weight:800; cursor:pointer; transition:all .12s;}
-  .modeseg button.on{background:var(--ink); border-color:var(--ink); color:var(--card);}
-  .segrow{display:flex; gap:6px; margin-bottom:6px;}
-  .segrow button{flex:1; border:1.5px solid var(--line); background:var(--card); color:var(--sub);
-    border-radius:11px; padding:10px 0; font-size:.85rem; font-weight:800; cursor:pointer; transition:all .12s;}
-  .segrow button.on{background:var(--accent); border-color:var(--accent); color:#fff;}
   .hide{display:none !important;}
+  /* US以外：②送料・③合計が不要なので①だけを全幅で */
+  .grid3.one{grid-template-columns:1fr;}
+  .grid3.one input{font-size:1rem; padding-left:30px;}
+  .grid3.one .unit{left:10px; font-size:.82rem;}
   .dutytag{cursor:pointer; color:var(--accent);}
   .dutytag:active{opacity:.5;}
   .res.direct{background:var(--accent-soft); padding:13px 13px 14px;}
@@ -118,37 +120,35 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="modeseg" id="modeSeg">
-    <button type="button" data-mode="ebay" class="on">eBay</button>
-    <button type="button" data-mode="direct">直取</button>
-  </div>
-
-  <div class="curseg eonly" id="curSeg">
-    <button type="button" data-cur="USD" class="on">USD&nbsp;$</button>
-    <button type="button" data-cur="EUR">EUR&nbsp;€</button>
-    <button type="button" data-cur="AUD">AUD&nbsp;A$</button>
-    <button type="button" data-cur="GBP">GBP&nbsp;£</button>
-  </div>
-
-  <div class="donly hide" id="dOpts">
-    <div class="segrow" id="destSeg">
-      <button type="button" data-dest="us" class="on">US向け（関税あり）</button>
-      <button type="button" data-dest="non">US以外（関税なし）</button>
+  <div class="ctlbar">
+    <div class="seg" id="modeSeg">
+      <button type="button" data-mode="ebay" class="on">eBay</button>
+      <button type="button" data-mode="direct">直取</button>
     </div>
-    <div class="segrow" id="paySeg">
-      <button type="button" data-pay="paypal" class="on">PayPal 8.2%</button>
-      <button type="button" data-pay="wise">Wise 2.2%</button>
+    <div class="seg donly hide" id="destSeg">
+      <button type="button" data-dest="us" class="on">US向け</button>
+      <button type="button" data-dest="non">US以外</button>
     </div>
-    <div class="curseg hide" id="dCurSeg">
-      <button type="button" data-dcur="USD" class="on">USD&nbsp;$</button>
-      <button type="button" data-dcur="EUR">EUR&nbsp;€</button>
-      <button type="button" data-dcur="AUD">AUD&nbsp;A$</button>
-      <button type="button" data-dcur="GBP">GBP&nbsp;£</button>
+    <div class="seg donly hide" id="paySeg">
+      <button type="button" data-pay="paypal" class="on">PayPal</button>
+      <button type="button" data-pay="wise">Wise</button>
+    </div>
+    <div class="seg eonly" id="curSeg">
+      <button type="button" data-cur="USD" class="on">USD</button>
+      <button type="button" data-cur="EUR">EUR</button>
+      <button type="button" data-cur="AUD">AUD</button>
+      <button type="button" data-cur="GBP">GBP</button>
+    </div>
+    <div class="seg hide" id="dCurSeg">
+      <button type="button" data-dcur="USD" class="on">USD</button>
+      <button type="button" data-dcur="EUR">EUR</button>
+      <button type="button" data-dcur="AUD">AUD</button>
+      <button type="button" data-dcur="GBP">GBP</button>
     </div>
   </div>
 
   <h1 class="eonly"><span class="dot"></span>eBay 利益計算 — <span id="curName">米ドル</span> ベース</h1>
-  <h1 class="donly hide"><span class="dot"></span>直取 利益計算 — <span id="dName">US向け・PayPal</span></h1>
+  <span id="dName" class="hide"></span>
 
   <div class="card">
     <div class="grid3 eonly">
@@ -167,17 +167,17 @@
           <button type="button" class="clr" data-clr="total" aria-label="クリア">×</button></div></div>
     </div>
 
-    <div class="grid3 donly hide">
-      <div class="field"><label>① 商品価格</label>
+    <div class="grid3 donly hide" id="dGrid">
+      <div class="field"><label id="dPriceLbl">① 商品価格</label>
         <div class="inputrow"><span class="unit" id="dUP">$</span>
           <input class="hasclr" type="text" id="dPrice" inputmode="decimal" placeholder="0" value="500">
           <button type="button" class="clr" data-clr="dPrice" aria-label="クリア">×</button></div></div>
-      <div class="field"><label>② 送料(自動)</label>
+      <div class="field" id="dShipField"><label>② 送料(自動)</label>
         <div class="inputrow"><span class="unit" id="dUS">$</span>
           <input class="hasclr" type="text" id="dShip" inputmode="decimal" placeholder="0" value="65.5">
           <button type="button" class="clr" data-clr="dShip" aria-label="クリア">×</button></div>
         <div class="shiptag" id="dutyTag">関税 $0</div></div>
-      <div class="field"><label class="lbl3">③ 合計<span class="f">（①＋②）</span></label>
+      <div class="field" id="dTotalField"><label class="lbl3">③ 合計<span class="f">（①＋②）</span></label>
         <div class="inputrow"><span class="unit" id="dUT">$</span>
           <input class="hasclr" type="text" id="dTotal" inputmode="decimal" placeholder="0">
           <button type="button" class="clr" data-clr="dTotal" aria-label="クリア">×</button></div></div>
@@ -384,7 +384,12 @@
     setMoney("dPrice",Math.max(0,P)); setMoney("dShip",Math.max(0,P*d)); compute();
   }
   function applyDirectUI(){
-    $("dCurSeg").classList.toggle("hide", !(mode==="direct"&&dest==="non"));
+    var solo=(dest==="non");                       // US以外＝関税なし → ②送料・③合計は不要
+    $("dCurSeg").classList.toggle("hide", !(mode==="direct"&&solo));
+    $("dGrid").classList.toggle("one",solo);
+    $("dShipField").classList.toggle("hide",solo);
+    $("dTotalField").classList.toggle("hide",solo);
+    $("dPriceLbl").textContent=solo?"商品価格":"① 商品価格";
     var s=dSym(); $("dUP").textContent=s; $("dUS").textContent=s; $("dUT").textContent=s;
   }
   function applyDcur(c){
@@ -407,6 +412,7 @@
     var eo=document.querySelectorAll(".eonly"), dn=document.querySelectorAll(".donly");
     for(var i=0;i<eo.length;i++){eo[i].classList.toggle("hide", m!=="ebay");}
     for(var j=0;j<dn.length;j++){dn[j].classList.toggle("hide", m!=="direct");}
+    applyDirectUI();
     compute();
   }
   function setTag(i,over){$("shipTag").textContent="段階"+(i+1)+(over?"（表上限超）":"");}
@@ -466,7 +472,9 @@
   for(var mi=0;mi<mb.length;mi++){mb[mi].addEventListener("click",function(){applyMode(this.getAttribute("data-mode"));});}
   var db=$("destSeg").getElementsByTagName("button");
   for(var di=0;di<db.length;di++){db[di].addEventListener("click",function(){
-    dest=this.getAttribute("data-dest");setSeg("destSeg","data-dest",dest);applyDirectUI();dFromPrice();});}
+    var Pu=num("dPrice")/dRate();          // 実効通貨が変わっても金額の価値を保つ
+    dest=this.getAttribute("data-dest");setSeg("destSeg","data-dest",dest);applyDirectUI();
+    setMoney("dPrice",Pu*dRate());dFromPrice();});}
   var pb=$("paySeg").getElementsByTagName("button");
   for(var pi=0;pi<pb.length;pi++){pb[pi].addEventListener("click",function(){
     pay=this.getAttribute("data-pay");setSeg("paySeg","data-pay",pay);compute();});}
