@@ -82,6 +82,18 @@
   .dbreak{font-size:.68rem; color:var(--sub); margin-top:10px; line-height:1.75;
     border-top:1px solid var(--line); padding-top:8px;}
   .dbreak b{color:var(--ink); font-weight:700;}
+  /* 同じ粗利になる価格 */
+  .eqh{font-size:.78rem; font-weight:800; color:var(--sub); margin-bottom:8px;}
+  .eqrow{display:flex; align-items:center; gap:8px; padding:8px 9px; margin-bottom:6px;
+    border:1.5px solid var(--line); border-radius:10px; cursor:pointer;}
+  .eqrow:active{opacity:.6;}
+  .eqrow.cur{border-color:var(--accent); background:var(--accent-soft);}
+  .eqrow .k{flex:0 0 52px; font-size:.74rem; font-weight:700; color:var(--sub);}
+  .eqrow .v{flex:1; font-size:1.05rem; font-weight:800; letter-spacing:-.3px;}
+  .eqrow.cur .v{color:var(--accent);}
+  .eqrow .tag{font-size:.6rem; font-weight:700; color:var(--sub);}
+  .eqnote{font-size:.64rem; color:var(--sub); line-height:1.6; margin-top:2px;}
+  .eqnote b{color:var(--ink); font-weight:700;}
   .results{display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:9px;}
   .res{border-radius:14px; padding:11px 11px 12px;}
   .res.us{background:var(--us-soft);} .res.non{background:var(--accent-soft);}
@@ -127,6 +139,12 @@
       <button type="button" data-pay="paypal" class="on">PayPal 8.2%</button>
       <button type="button" data-pay="wise">Wise 2.2%</button>
     </div>
+    <div class="curseg hide" id="dCurSeg">
+      <button type="button" data-dcur="USD" class="on">USD&nbsp;$</button>
+      <button type="button" data-dcur="EUR">EUR&nbsp;€</button>
+      <button type="button" data-dcur="AUD">AUD&nbsp;A$</button>
+      <button type="button" data-dcur="GBP">GBP&nbsp;£</button>
+    </div>
   </div>
 
   <h1 class="eonly"><span class="dot"></span>eBay 利益計算 — <span id="curName">米ドル</span> ベース</h1>
@@ -151,16 +169,16 @@
 
     <div class="grid3 donly hide">
       <div class="field"><label>① 商品価格</label>
-        <div class="inputrow"><span class="unit">$</span>
+        <div class="inputrow"><span class="unit" id="dUP">$</span>
           <input class="hasclr" type="text" id="dPrice" inputmode="decimal" placeholder="0" value="500">
           <button type="button" class="clr" data-clr="dPrice" aria-label="クリア">×</button></div></div>
-      <div class="field"><label>② 送料</label>
-        <div class="inputrow"><span class="unit">$</span>
+      <div class="field"><label>② 送料(自動)</label>
+        <div class="inputrow"><span class="unit" id="dUS">$</span>
           <input class="hasclr" type="text" id="dShip" inputmode="decimal" placeholder="0" value="65.5">
           <button type="button" class="clr" data-clr="dShip" aria-label="クリア">×</button></div>
-        <div class="shiptag dutytag" id="dutyTag">関税 $0</div></div>
+        <div class="shiptag" id="dutyTag">関税 $0</div></div>
       <div class="field"><label class="lbl3">③ 合計<span class="f">（①＋②）</span></label>
-        <div class="inputrow"><span class="unit">$</span>
+        <div class="inputrow"><span class="unit" id="dUT">$</span>
           <input class="hasclr" type="text" id="dTotal" inputmode="decimal" placeholder="0">
           <button type="button" class="clr" data-clr="dTotal" aria-label="クリア">×</button></div></div>
     </div>
@@ -195,6 +213,13 @@
     <div class="dbreak" id="dBreak"></div>
   </div>
 
+  <div class="card donly hide" id="dEqCard">
+    <div class="eqh">⇄ 同じ粗利になる価格</div>
+    <div class="eqrow" id="eqPP"><span class="k">PayPal</span><span class="v" id="eqPPv">–</span><span class="tag" id="eqPPt"></span></div>
+    <div class="eqrow" id="eqWS"><span class="k">Wise</span><span class="v" id="eqWSv">–</span><span class="tag" id="eqWSt"></span></div>
+    <div class="eqnote" id="eqNote"></div>
+  </div>
+
   <div class="results eonly">
     <div class="res us">
       <h2>① US向け <small>関税・送料あり</small></h2>
@@ -224,7 +249,7 @@
           <div class="field"><label>還付率(消費税) %</label><input class="pad-plain" type="number" id="refund" inputmode="decimal" value="8"></div>
         </div>
         <button class="reset" id="resetBtn">既定値に戻す</button>
-        <div class="note donly hide">【直取】売上＝①商品価格＋②送料。<b>関税＝①商品価格のみ×関税率</b>（送料には掛けない・US向けのみ）。<b>PayPal/Wise手数料＝売上（①＋②）に対して</b>。手取り$＝売上−関税−手数料 → 円換算して 自己負担送料¥・仕入れ¥ を引いたのが粗利。還付込み＝粗利＋(仕入−仕入/(1+還付率))。②送料の下の「関税 $○○」をタップすると、その額を送料に入れられるよ（送料で関税を回収する場合用）。eBay手数料・プロモ・Payoneerは掛からない。</div>
+        <div class="note donly hide">【直取】売上＝①商品価格＋②送料。<b>②送料は自動で「①商品価格×関税率(13.1%)」</b>が入る（送料名目で関税分を回収する前提。手で上書きもできるよ）。<b>関税＝①商品価格のみ×関税率</b>（送料には掛けない・US向けのみ）。<b>PayPal/Wise手数料＝売上（①＋②）に対して</b>。手取り＝売上−関税−手数料 → 円換算して 自己負担送料¥・仕入れ¥ を引いたのが粗利。還付込み＝粗利＋(仕入−仕入/(1+還付率))。US以外は関税なし＝送料0・4通貨（USD/EUR/AUD/GBP）で入力可。eBay手数料・プロモ・Payoneerは掛からない。</div>
         <div class="note eonly">①販売価格→②送料が段階表で自動（手動変更も可）→③合計。③合計→送料と販売価格を逆算。②送料＝バイヤーに課金する送料（US向けのみ・合計にeBay手数料の対象）。自己負担送料¥＝実際の発送コスト（US/US以外とも実費で控除）。US以外は課金送料・関税なし。通貨ボタンで①②③を入力（送料表はUSD換算で判定）。手取り＝(合計)−eBay手数料−関税→円換算後Payoneer控除−自己負担送料−仕入。還付込み＝還付前＋(仕入−仕入/(1+還付率))。為替は1日1回自動取得・入力は自動保存。</div>
       </div>
     </details>
@@ -239,7 +264,7 @@
   var SYM={USD:"$",EUR:"€",AUD:"A$",GBP:"£"}, NAME={USD:"米ドル",EUR:"ユーロ",AUD:"豪ドル",GBP:"英ポンド"};
   var rates={USD:1, JPY:161.31, EUR:0.92, AUD:1.50, GBP:0.79};
   var cur="USD";
-  var mode="ebay", dest="us", pay="paypal";   // 直取モードの状態
+  var mode="ebay", dest="us", pay="paypal", dcur="USD";   // 直取モードの状態
   var moneyIds=["price","ship","total","selfship","cost","dPrice","dShip","dTotal"];
   var $=function(id){return document.getElementById(id);};
   var num=function(id){var v=parseFloat(($(id).value||"").replace(/,/g,""));return isFinite(v)?v:0;};
@@ -296,7 +321,7 @@
     try{var o={};calcIds.forEach(function(k){o[k]=$(k).value;});
       o.price=$("price").value;o.ship=$("ship").value;o.__cur=cur;
       o.dPrice=$("dPrice").value;o.dShip=$("dShip").value;
-      o.__mode=mode;o.__dest=dest;o.__pay=pay;
+      o.__mode=mode;o.__dest=dest;o.__pay=pay;o.__dcur=dcur;
       localStorage.setItem("ebayProfitCalc",JSON.stringify(o));}catch(e){}
   }
 
@@ -305,13 +330,20 @@
      関税 = ①商品価格 × 関税率（US向けのみ・送料には掛けない）
      手数料 = 売上 × PayPal/Wise率
      粗利 = (売上 − 関税 − 手数料) × 為替 − 自己負担送料¥ − 仕入れ¥          */
+  function dCurEff(){ return dest==="us"?"USD":dcur; }   // US向けはUSD固定
+  function dRate(){ return rates[dCurEff()]||1; }
+  function dSym(){ return SYM[dCurEff()]; }
+  function dm(n){ return dSym()+comma(n); }              // 表示通貨での金額
+
   function computeDirect(){
-    var P=num("dPrice"), S=num("dShip"), selfYen=num("selfship"), cost=num("cost");
+    var Pc=num("dPrice"), Sc=num("dShip"), selfYen=num("selfship"), cost=num("cost");
     var fx=num("fx"), dutyR=num("duty")/100, refundR=num("refund")/100;
-    var feePct=(pay==="wise"?num("wiseF"):num("ppF"));
+    var feePct=(pay==="wise"?num("wiseF"):num("ppF")), f=feePct/100;
+    var rt=dRate(), isUSD=(dCurEff()==="USD");
+    var P=Pc/rt, S=Sc/rt;                       // 表示通貨 → USD
     var sales=P+S;                              // 売上（買い手の支払い総額）
     var duty=(dest==="us")?P*dutyR:0;           // 関税は商品価格のみ
-    var fee=sales*(feePct/100);                 // 決済手数料は売上に対して
+    var fee=sales*f;                            // 決済手数料は売上に対して
     var netUSD=sales-duty-fee;
     var pre=netUSD*fx-selfYen-cost;             // 粗利
     var refund=cost-cost/(1+refundR);
@@ -320,18 +352,52 @@
     setMetric("dInc","dIncP",pre+refund,baseJPY);
 
     var dLabel=(dest==="us"?"US向け":"US以外"), pLabel=(pay==="wise"?"Wise":"PayPal");
-    $("dutyTag").textContent="関税 $"+r2(duty)+(dest==="us"?" ⤵":"");   // タップで送料へ
-    $("dName").textContent=dLabel+"・"+pLabel;
-    $("dSub").textContent=dLabel+"・"+pLabel+" "+feePct+"%";
+    $("dutyTag").textContent=(dest==="us"?"関税 "+dm(duty*rt):"関税なし");
+    $("dName").textContent=dLabel+"・"+pLabel+(isUSD?"":"・"+dCurEff());
+    $("dSub").textContent=dLabel+"・"+pLabel+" "+feePct+"%"+(isUSD?"":"・"+dCurEff());
     $("dBreak").innerHTML=
-      "売上 <b>$"+r2(sales)+"</b>（商品 $"+r2(P)+" ＋ 送料 $"+r2(S)+"）<br>"+
-      "− 関税 <b>$"+r2(duty)+"</b>"+(dest==="us"?"（商品価格 $"+r2(P)+" × "+num("duty")+"%）":"（US以外なので0）")+"<br>"+
-      "− "+pLabel+"手数料 <b>$"+r2(fee)+"</b>（売上 × "+feePct+"%）<br>"+
-      "＝ 手取り <b>$"+r2(netUSD)+"</b> → <b>"+yen(netUSD*fx)+"</b>（@"+fx+"）<br>"+
+      "売上 <b>"+dm(sales*rt)+"</b>（商品 "+dm(Pc)+" ＋ 送料 "+dm(Sc)+"）<br>"+
+      "− 関税 <b>"+dm(duty*rt)+"</b>"+(dest==="us"?"（商品価格 "+dm(Pc)+" × "+num("duty")+"%）":"（US以外なので0）")+"<br>"+
+      "− "+pLabel+"手数料 <b>"+dm(fee*rt)+"</b>（売上 × "+feePct+"%）<br>"+
+      "＝ 手取り <b>"+dm(netUSD*rt)+"</b>"+(isUSD?"":"（＝$"+comma(netUSD)+"）")+" → <b>"+yen(netUSD*fx)+"</b>（@"+fx+"）<br>"+
       "− 自己負担送料 "+yen(selfYen)+" − 仕入れ "+yen(cost);
+
+    // ===== 同じ粗利になる①商品価格（②送料＝商品価格×関税率 の自動構成が前提）=====
+    // 手取り = P×(1+d) − P×d − P×(1+d)×f = P×(1 − f×(1+d))  → P = 手取り / (1 − f(1+d))
+    var dEff=(dest==="us")?dutyR:0;
+    function eqP(fr){var k=1-fr*(1+dEff); return k>0?(netUSD/k)*rt:0;}
+    var ePP=eqP(num("ppF")/100), eWS=eqP(num("wiseF")/100);
+    $("eqPPv").textContent=dm(ePP);
+    $("eqWSv").textContent=dm(eWS);
+    $("eqPPt").textContent=(pay==="paypal"?"現在":"タップで適用");
+    $("eqWSt").textContent=(pay==="wise"?"現在":"タップで適用");
+    $("eqPP").className="eqrow"+(pay==="paypal"?" cur":"");
+    $("eqWS").className="eqrow"+(pay==="wise"?" cur":"");
+    $("eqNote").innerHTML="どちらの決済で受け取っても粗利 <b>"+yen(pre)+"</b> になる①商品価格だよ。"+
+      (dest==="us"?"（②送料は自動で 商品価格×"+num("duty")+"%）":"")+"<br>PayPalは手数料が高いぶん、同じ粗利には高い価格提示が必要になるよ。";
   }
-  function dFromPrice(){ setMoney("dTotal",num("dPrice")+num("dShip")); compute(); }
-  function dFromTotal(){ setMoney("dPrice",Math.max(0,num("dTotal")-num("dShip"))); compute(); }
+  function dShipAuto(){ return (dest==="us")?num("dPrice")*num("duty")/100:0; }   // ②送料＝商品価格×関税率
+  function dFromPrice(){ setMoney("dShip",dShipAuto()); setMoney("dTotal",num("dPrice")+num("dShip")); compute(); }
+  function dFromShip(){ setMoney("dTotal",num("dPrice")+num("dShip")); compute(); }   // 送料の手動上書き
+  function dFromTotal(){                                                              // 合計から逆算
+    var T=num("dTotal"), d=(dest==="us")?num("duty")/100:0, P=T/(1+d);
+    setMoney("dPrice",Math.max(0,P)); setMoney("dShip",Math.max(0,P*d)); compute();
+  }
+  function applyDirectUI(){
+    $("dCurSeg").classList.toggle("hide", !(mode==="direct"&&dest==="non"));
+    var s=dSym(); $("dUP").textContent=s; $("dUS").textContent=s; $("dUT").textContent=s;
+  }
+  function applyDcur(c){
+    var Pu=num("dPrice")/dRate();          // 旧通貨でのUSD価格を保持
+    dcur=c; setSeg("dCurSeg","data-dcur",c); applyDirectUI();
+    setMoney("dPrice",Pu*dRate()); dFromPrice();
+  }
+  function applyEq(p){                      // 提案価格の行をタップ → その決済＋価格に切替
+    var t=(p==="paypal"?$("eqPPv"):$("eqWSv")).textContent.replace(/[^\d.]/g,"");
+    pay=p; setSeg("paySeg","data-pay",pay);
+    if(t)setMoney("dPrice",parseFloat(t));
+    dFromPrice();
+  }
   function setSeg(segId,attr,val){
     var b=$(segId).getElementsByTagName("button");
     for(var i=0;i<b.length;i++){b[i].className=(b[i].getAttribute(attr)===val?"on":"");}
@@ -370,7 +436,8 @@
       if(saved.dShip!==undefined)$("dShip").value=saved.dShip;
       if(saved.__mode==="direct"||saved.__mode==="ebay")mode=saved.__mode;
       if(saved.__dest==="us"||saved.__dest==="non")dest=saved.__dest;
-      if(saved.__pay==="paypal"||saved.__pay==="wise")pay=saved.__pay;}}catch(e){}
+      if(saved.__pay==="paypal"||saved.__pay==="wise")pay=saved.__pay;
+      if(saved.__dcur&&SYM[saved.__dcur])dcur=saved.__dcur;}}catch(e){}
   // 金額欄の初期表示をカンマ整形
   moneyIds.forEach(function(id){if($(id).value!=="")setMoney(id,num(id));});
 
@@ -392,25 +459,25 @@
 
   // 直取：入力・モード・宛先・決済手段
   $("dPrice").addEventListener("input",function(){reformat(this);dFromPrice();});
-  $("dShip").addEventListener("input",function(){reformat(this);dFromPrice();});
+  $("dShip").addEventListener("input",function(){reformat(this);dFromShip();});
   $("dTotal").addEventListener("input",function(){reformat(this);dFromTotal();});
   ["ppF","wiseF"].forEach(function(k){$(k).addEventListener("input",compute);});
   var mb=$("modeSeg").getElementsByTagName("button");
   for(var mi=0;mi<mb.length;mi++){mb[mi].addEventListener("click",function(){applyMode(this.getAttribute("data-mode"));});}
   var db=$("destSeg").getElementsByTagName("button");
-  for(var di=0;di<db.length;di++){db[di].addEventListener("click",function(){dest=this.getAttribute("data-dest");setSeg("destSeg","data-dest",dest);compute();});}
+  for(var di=0;di<db.length;di++){db[di].addEventListener("click",function(){
+    dest=this.getAttribute("data-dest");setSeg("destSeg","data-dest",dest);applyDirectUI();dFromPrice();});}
   var pb=$("paySeg").getElementsByTagName("button");
-  for(var pi=0;pi<pb.length;pi++){pb[pi].addEventListener("click",function(){pay=this.getAttribute("data-pay");setSeg("paySeg","data-pay",pay);compute();});}
-  // 「関税 $○○ →送料に入れる」タップで送料に関税額を反映
-  $("dutyTag").addEventListener("click",function(){
-    if(dest!=="us")return;
-    setMoney("dShip", r2(num("dPrice")*num("duty")/100)); dFromPrice();
-  });
+  for(var pi=0;pi<pb.length;pi++){pb[pi].addEventListener("click",function(){
+    pay=this.getAttribute("data-pay");setSeg("paySeg","data-pay",pay);compute();});}
+  var dcb=$("dCurSeg").getElementsByTagName("button");
+  for(var dci=0;dci<dcb.length;dci++){dcb[dci].addEventListener("click",function(){applyDcur(this.getAttribute("data-dcur"));});}
+  $("eqPP").addEventListener("click",function(){applyEq("paypal");});
+  $("eqWS").addEventListener("click",function(){applyEq("wise");});
 
   applyCur(cur);
-  setSeg("destSeg","data-dest",dest); setSeg("paySeg","data-pay",pay);
-  setMoney("dTotal",num("dPrice")+num("dShip"));
-  applyMode(mode);
+  setSeg("destSeg","data-dest",dest); setSeg("paySeg","data-pay",pay); setSeg("dCurSeg","data-dcur",dcur);
+  applyMode(mode); applyDirectUI(); dFromPrice();
 
   /* 為替の自動取得（1日1回キャッシュ・非同期・失敗しても無害） */
   function todayStr(){var d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
