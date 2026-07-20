@@ -73,10 +73,7 @@
   .fxbtn:active{opacity:.6;}
   /* --- モード切替（eBay / 直取）--- */
   .hide{display:none !important;}
-  /* US以外：②送料・③合計が不要なので①だけを全幅で */
-  .grid3.one{grid-template-columns:1fr;}
-  .grid3.one input{font-size:1rem; padding-left:30px;}
-  .grid3.one .unit{left:10px; font-size:.82rem;}
+  #fxNow{flex:0 0 auto; font-weight:800; color:var(--ink);}
   .dutytag{cursor:pointer; color:var(--accent);}
   .dutytag:active{opacity:.5;}
   .res.direct{background:var(--accent-soft); padding:13px 13px 14px;}
@@ -184,12 +181,12 @@
           <button type="button" class="clr" data-clr="dTotal" aria-label="クリア">×</button></div></div>
     </div>
 
-    <div class="grid">
-      <div class="field"><label>仕入れ ¥</label>
+    <div class="grid" id="mainGrid">
+      <div class="field" id="costField"><label>仕入れ ¥</label>
         <div class="inputrow"><span class="unit">¥</span>
           <input class="hasclr" type="text" id="cost" inputmode="numeric" placeholder="0" value="12000">
           <button type="button" class="clr" data-clr="cost" aria-label="クリア">×</button></div></div>
-      <div class="field"><label>自己負担送料 ¥（実費）</label>
+      <div class="field" id="selfField"><label>自己負担送料 ¥</label>
         <div class="inputrow"><span class="unit">¥</span>
           <input class="hasclr" type="text" id="selfship" inputmode="numeric" placeholder="0" value="3000">
           <button type="button" class="clr" data-clr="selfship" aria-label="クリア">×</button></div></div>
@@ -197,13 +194,12 @@
         <div class="inputrow"><input class="pad-r hasclr-u" type="number" id="promo" inputmode="decimal" placeholder="3" value="3">
           <button type="button" class="clr clr-u" data-clr="promo" aria-label="クリア">×</button>
           <span class="unit r">%</span></div></div>
-      <div class="field"><label>為替 ¥/$</label>
-        <div class="inputrow"><input class="pad-plain" type="number" id="fx" inputmode="decimal" value="161.31"></div></div>
     </div>
     <div class="conv eonly" id="convLine"></div>
     <div class="fxline">
+      <span id="fxNow">為替 ¥–</span>
       <span id="fxMarket">市場レート 取得中…</span>
-      <button type="button" class="fxbtn" id="fxRefresh">↻ 最新に更新</button>
+      <button type="button" class="fxbtn" id="fxRefresh">↻ 更新</button>
     </div>
   </div>
 
@@ -251,6 +247,7 @@
           <div class="field donly hide"><label>PayPal %</label><input class="pad-plain" type="number" id="ppF" inputmode="decimal" value="8.2"></div>
           <div class="field donly hide"><label>Wise %</label><input class="pad-plain" type="number" id="wiseF" inputmode="decimal" value="2.2"></div>
           <div class="field"><label>還付率(消費税) %</label><input class="pad-plain" type="number" id="refund" inputmode="decimal" value="8"></div>
+          <div class="field"><label>為替 ¥/$（手動上書き）</label><input class="pad-plain" type="number" id="fx" inputmode="decimal" value="161.31"></div>
         </div>
         <button class="reset" id="resetBtn">既定値に戻す</button>
         <div class="note donly hide">【直取】売上＝①商品価格＋②送料。<b>②送料は自動で「①商品価格×関税率(13.1%)」</b>が入る（送料名目で関税分を回収する前提。手で上書きもできるよ）。<b>関税＝①商品価格のみ×関税率</b>（送料には掛けない・US向けのみ）。<b>PayPal/Wise手数料＝売上（①＋②）に対して</b>。手取り＝売上−関税−手数料 → 円換算して 自己負担送料¥・仕入れ¥ を引いたのが粗利。還付込み＝粗利＋(仕入−仕入/(1+還付率))。US以外は関税なし＝送料0・4通貨（USD/EUR/AUD/GBP）で入力可。eBay手数料・プロモ・Payoneerは掛からない。</div>
@@ -320,6 +317,7 @@
     if(cur==="USD"){$("convLine").textContent="";}
     else{$("convLine").textContent="USD換算 → 販売 $"+r2(Pu)+" / 送料 $"+r2(Lu)+" / 合計 $"+r2(Pu+Lu);}
 
+    $("fxNow").textContent="為替 ¥"+num("fx");
     computeDirect();
 
     try{var o={};calcIds.forEach(function(k){o[k]=$(k).value;});
@@ -385,11 +383,15 @@
   }
   function applyDirectUI(){
     var solo=(dest==="non");                       // US以外＝関税なし → ②送料・③合計は不要
-    $("dCurSeg").classList.toggle("hide", !(mode==="direct"&&solo));
-    $("dGrid").classList.toggle("one",solo);
+    var merge=(mode==="direct"&&solo);             // 商品価格・仕入れ・自己負担送料を1行に
+    $("dCurSeg").classList.toggle("hide", !merge);
     $("dShipField").classList.toggle("hide",solo);
     $("dTotalField").classList.toggle("hide",solo);
     $("dPriceLbl").textContent=solo?"商品価格":"① 商品価格";
+    // 共有欄(仕入れ/自己負担送料)を移動。要素ごと動かすので値もリスナーも保持される
+    var g=$("dGrid"), mg=$("mainGrid"), cf=$("costField"), sf=$("selfField");
+    if(merge){ if(cf.parentNode!==g){ g.appendChild(cf); g.appendChild(sf); } }
+    else { if(cf.parentNode!==mg){ mg.insertBefore(sf,mg.firstChild); mg.insertBefore(cf,mg.firstChild); } }
     var s=dSym(); $("dUP").textContent=s; $("dUS").textContent=s; $("dUT").textContent=s;
   }
   function applyDcur(c){
