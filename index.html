@@ -58,12 +58,13 @@
   input.hasclr{padding-right:28px;}
   .grid3 input.hasclr{padding-right:24px;}
   input.hasclr-u{padding-right:46px;}
-  .inputrow .clr.clr-u{right:25px;}
   .inputrow .clr{position:absolute; right:5px; top:50%; transform:translateY(-50%);
     width:18px; height:18px; padding:0; border:none; border-radius:50%;
     background:var(--line); color:var(--sub); font-size:.82rem; line-height:1; font-weight:700;
     display:flex; align-items:center; justify-content:center; cursor:pointer;}
   .grid3 .inputrow .clr{width:16px; height:16px; right:4px; font-size:.72rem;}
+  /* %付きの欄は × を % の左に置く（.grid3 の right:4px に負けないよう後ろ＆同等以上の詳細度で） */
+  .inputrow .clr.clr-u,.grid3 .inputrow .clr.clr-u{right:27px;}
   .inputrow .clr:active{opacity:.45;}
   .shiptag{font-size:.62rem; color:var(--sub); margin-top:3px; font-weight:600;}
   .conv{font-size:.66rem; color:var(--accent); font-weight:700; margin-top:8px;}
@@ -414,6 +415,8 @@
     var eo=document.querySelectorAll(".eonly"), dn=document.querySelectorAll(".donly");
     for(var i=0;i<eo.length;i++){eo[i].classList.toggle("hide", m!=="ebay");}
     for(var j=0;j<dn.length;j++){dn[j].classList.toggle("hide", m!=="direct");}
+    // eBayは 仕入れ/自己負担送料/プロモ率 の3欄 → 3カラム1行に
+    $("mainGrid").classList.toggle("grid3", m==="ebay");
     applyDirectUI();
     compute();
   }
