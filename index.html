@@ -84,18 +84,19 @@
   .dbreak{font-size:.68rem; color:var(--sub); margin-top:10px; line-height:1.75;
     border-top:1px solid var(--line); padding-top:8px;}
   .dbreak b{color:var(--ink); font-weight:700;}
-  /* 同じ粗利になる価格 */
-  .eqh{font-size:.78rem; font-weight:800; color:var(--sub); margin-bottom:8px;}
-  .eqrow{display:flex; align-items:center; gap:8px; padding:8px 9px; margin-bottom:6px;
-    border:1.5px solid var(--line); border-radius:10px; cursor:pointer;}
-  .eqrow:active{opacity:.6;}
-  .eqrow.cur{border-color:var(--accent); background:var(--accent-soft);}
-  .eqrow .k{flex:0 0 52px; font-size:.74rem; font-weight:700; color:var(--sub);}
-  .eqrow .v{flex:1; font-size:1.05rem; font-weight:800; letter-spacing:-.3px;}
+  /* 粗利パネル：左=粗利 / 右=同じ粗利になる価格 */
+  .dcols{display:flex; gap:10px; align-items:flex-start;}
+  .dleft{flex:1 1 auto; min-width:0;}
+  .dright{flex:0 0 138px; min-width:0;}
+  .eqh{font-size:.62rem; font-weight:800; color:var(--sub); margin-bottom:6px; white-space:nowrap;}
+  .eqrow{display:flex; align-items:baseline; gap:5px; padding:6px 8px; margin-bottom:5px;
+    background:var(--card); border:1.5px solid var(--line); border-radius:9px; cursor:pointer;}
+  .eqrow:active{opacity:.55;}
+  .eqrow.cur{border-color:var(--accent);}
+  .eqrow .k{flex:0 0 auto; font-size:.58rem; font-weight:700; color:var(--sub);}
+  .eqrow .v{flex:1 1 auto; text-align:right; font-size:.86rem; font-weight:800; letter-spacing:-.3px;}
   .eqrow.cur .v{color:var(--accent);}
-  .eqrow .tag{font-size:.6rem; font-weight:700; color:var(--sub);}
-  .eqnote{font-size:.64rem; color:var(--sub); line-height:1.6; margin-top:2px;}
-  .eqnote b{color:var(--ink); font-weight:700;}
+  .eqt{font-size:.56rem; color:var(--sub); font-weight:600; text-align:center;}
   .results{display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:9px;}
   .res{border-radius:14px; padding:11px 11px 12px;}
   .res.us{background:var(--us-soft);} .res.non{background:var(--accent-soft);}
@@ -208,16 +209,19 @@
 
   <div class="res direct donly hide">
     <h2>直取 粗利 <small id="dSub">US向け・PayPal</small></h2>
-    <div class="metric"><div class="k">粗利</div><div class="v" id="dPre">–</div><div class="pct" id="dPreP"></div></div>
-    <div class="metric"><div class="k">還付込み 粗利</div><div class="v" id="dInc">–</div><div class="pct" id="dIncP"></div></div>
+    <div class="dcols">
+      <div class="dleft">
+        <div class="metric"><div class="k">粗利</div><div class="v" id="dPre">–</div><div class="pct" id="dPreP"></div></div>
+        <div class="metric"><div class="k">還付込み 粗利</div><div class="v" id="dInc">–</div><div class="pct" id="dIncP"></div></div>
+      </div>
+      <div class="dright">
+        <div class="eqh">⇄ 同じ粗利の価格</div>
+        <div class="eqrow" id="eqPP"><span class="k">PayPal</span><span class="v" id="eqPPv">–</span></div>
+        <div class="eqrow" id="eqWS"><span class="k">Wise</span><span class="v" id="eqWSv">–</span></div>
+        <div class="eqt">タップで適用</div>
+      </div>
+    </div>
     <div class="dbreak" id="dBreak"></div>
-  </div>
-
-  <div class="card donly hide" id="dEqCard">
-    <div class="eqh">⇄ 同じ粗利になる価格</div>
-    <div class="eqrow" id="eqPP"><span class="k">PayPal</span><span class="v" id="eqPPv">–</span><span class="tag" id="eqPPt"></span></div>
-    <div class="eqrow" id="eqWS"><span class="k">Wise</span><span class="v" id="eqWSv">–</span><span class="tag" id="eqWSt"></span></div>
-    <div class="eqnote" id="eqNote"></div>
   </div>
 
   <div class="results eonly">
@@ -369,12 +373,8 @@
     var ePP=eqP(num("ppF")/100), eWS=eqP(num("wiseF")/100);
     $("eqPPv").textContent=dm(ePP);
     $("eqWSv").textContent=dm(eWS);
-    $("eqPPt").textContent=(pay==="paypal"?"現在":"タップで適用");
-    $("eqWSt").textContent=(pay==="wise"?"現在":"タップで適用");
     $("eqPP").className="eqrow"+(pay==="paypal"?" cur":"");
     $("eqWS").className="eqrow"+(pay==="wise"?" cur":"");
-    $("eqNote").innerHTML="どちらの決済で受け取っても粗利 <b>"+yen(pre)+"</b> になる①商品価格だよ。"+
-      (dest==="us"?"（②送料は自動で 商品価格×"+num("duty")+"%）":"")+"<br>PayPalは手数料が高いぶん、同じ粗利には高い価格提示が必要になるよ。";
   }
   function dShipAuto(){ return (dest==="us")?num("dPrice")*num("duty")/100:0; }   // ②送料＝商品価格×関税率
   function dFromPrice(){ setMoney("dShip",dShipAuto()); setMoney("dTotal",num("dPrice")+num("dShip")); compute(); }
