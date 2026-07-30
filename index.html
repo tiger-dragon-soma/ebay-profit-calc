@@ -242,7 +242,7 @@
           <div class="field eonly"><label>eBay FVF %</label><input class="pad-plain" type="number" id="fvf" inputmode="decimal" value="13.25"></div>
           <div class="field eonly"><label>海外手数料 %</label><input class="pad-plain" type="number" id="intl" inputmode="decimal" value="1.35"></div>
           <div class="field eonly"><label>Payoneer %</label><input class="pad-plain" type="number" id="payoneer" inputmode="decimal" value="2"></div>
-          <div class="field"><label>関税 Duty %</label><input class="pad-plain" type="number" id="duty" inputmode="decimal" value="13.1"></div>
+          <div class="field"><label>関税 Duty %</label><input class="pad-plain" type="number" id="duty" inputmode="decimal" value="15.6"></div>
           <div class="field eonly"><label>Duty固定 $</label><input class="pad-plain" type="number" id="dutyF" inputmode="decimal" value="7"></div>
           <div class="field donly hide"><label>PayPal %</label><input class="pad-plain" type="number" id="ppF" inputmode="decimal" value="8.2"></div>
           <div class="field donly hide"><label>Wise %</label><input class="pad-plain" type="number" id="wiseF" inputmode="decimal" value="2.2"></div>
@@ -250,7 +250,7 @@
           <div class="field"><label>為替 ¥/$（手動上書き）</label><input class="pad-plain" type="number" id="fx" inputmode="decimal" value="161.31"></div>
         </div>
         <button class="reset" id="resetBtn">既定値に戻す</button>
-        <div class="note donly hide">【直取】売上＝①商品価格＋②送料。<b>②送料は自動で「①商品価格×関税率(13.1%)」</b>が入る（送料名目で関税分を回収する前提。手で上書きもできるよ）。<b>関税＝①商品価格のみ×関税率</b>（送料には掛けない・US向けのみ）。<b>PayPal/Wise手数料＝売上（①＋②）に対して</b>。手取り＝売上−関税−手数料 → 円換算して 自己負担送料¥・仕入れ¥ を引いたのが粗利。還付込み＝粗利＋(仕入−仕入/(1+還付率))。US以外は関税なし＝送料0・4通貨（USD/EUR/AUD/GBP）で入力可。eBay手数料・プロモ・Payoneerは掛からない。</div>
+        <div class="note donly hide">【直取】売上＝①商品価格＋②送料。<b>②送料は自動で「①商品価格×関税率(15.6%)」</b>が入る（送料名目で関税分を回収する前提。手で上書きもできるよ）。<b>関税＝①商品価格のみ×関税率</b>（送料には掛けない・US向けのみ）。<b>PayPal/Wise手数料＝売上（①＋②）に対して</b>。手取り＝売上−関税−手数料 → 円換算して 自己負担送料¥・仕入れ¥ を引いたのが粗利。還付込み＝粗利＋(仕入−仕入/(1+還付率))。US以外は関税なし＝送料0・4通貨（USD/EUR/AUD/GBP）で入力可。eBay手数料・プロモ・Payoneerは掛からない。</div>
         <div class="note eonly">①販売価格→②送料が段階表で自動（手動変更も可）→③合計。③合計→送料と販売価格を逆算。②送料＝バイヤーに課金する送料（US向けのみ・合計にeBay手数料の対象）。自己負担送料¥＝実際の発送コスト（US/US以外とも実費で控除）。US以外は課金送料・関税なし。通貨ボタンで①②③を入力（送料表はUSD換算で判定）。手取り＝(合計)−eBay手数料−関税→円換算後Payoneer控除−自己負担送料−仕入。還付込み＝還付前＋(仕入−仕入/(1+還付率))。為替は1日1回自動取得・入力は自動保存。</div>
       </div>
     </details>
@@ -259,9 +259,11 @@
 
 <script>
 (function(){
-  var SHIP=[[130,150,20],[170,200,30],[210,250,40],[255,300,45],[300,350,50],[345,400,55],[390,450,60],[430,500,70],[520,600,80],[610,700,90],[700,800,100],[780,900,120],[870,1000,130],[960,1100,140],[1040,1200,160],[1130,1300,170],[1220,1400,180],[1300,1500,200],[1390,1600,210],[1480,1700,220],[1570,1800,230],[1650,1900,250],[1740,2000,260],[1830,2100,270],[1910,2200,290],[2000,2300,300],[2090,2400,310],[2170,2500,330]];
+  // ★2026-07-29 新設計: [帯下限, 帯上限(exclusive), 送料] — 帯は商品価格(送料抜き)で選ぶ。
+  //   送料 = 帯中央の関税(15.6%+$7)を$5刻みに丸めた案B。$2500以上は送料0(正式通関)。
+  var SHIP=[[100,150,25],[150,200,35],[200,250,40],[250,300,50],[300,350,60],[350,400,65],[400,450,75],[450,500,80],[500,600,95],[600,700,110],[700,800,125],[800,900,140],[900,1000,155],[1000,1100,170],[1100,1200,185],[1200,1300,200],[1300,1400,220],[1400,1500,235],[1500,1600,250],[1600,1700,265],[1700,1800,280],[1800,1900,295],[1900,2000,310],[2000,2100,325],[2100,2200,340],[2200,2300,360],[2300,2400,375],[2400,2500,390]];
   var calcIds=["selfship","cost","promo","fx","tax","fvf","intl","payoneer","duty","dutyF","refund","ppF","wiseF"];
-  var defaults={selfship:"3000",cost:"12000",promo:"3",fx:"161.31",tax:"10",fvf:"13.25",intl:"1.35",payoneer:"2",duty:"13.1",dutyF:"7",refund:"8",ppF:"8.2",wiseF:"2.2"};
+  var defaults={selfship:"3000",cost:"12000",promo:"3",fx:"161.31",tax:"10",fvf:"13.25",intl:"1.35",payoneer:"2",duty:"15.6",dutyF:"7",refund:"8",ppF:"8.2",wiseF:"2.2"};
   var SYM={USD:"$",EUR:"€",AUD:"A$",GBP:"£"}, NAME={USD:"米ドル",EUR:"ユーロ",AUD:"豪ドル",GBP:"英ポンド"};
   var rates={USD:1, JPY:161.31, EUR:0.92, AUD:1.50, GBP:0.79};
   var cur="USD";
@@ -286,8 +288,20 @@
     var pos=0,cnt=0; while(pos<out.length&&cnt<before){if(/[\d.]/.test(out[pos]))cnt++;pos++;}
     try{el.setSelectionRange(pos,pos);}catch(e){}
   }
-  function tierByPrice(P){for(var i=0;i<SHIP.length;i++){if(P<=SHIP[i][0])return i;}return SHIP.length-1;}
-  function tierByTotal(T){for(var i=0;i<SHIP.length;i++){if(T<SHIP[i][1])return i;}return SHIP.length-1;}
+  // 商品価格(USD)→帯index。100未満は先頭帯、$2500以上は -1 (送料0)。
+  function tierByPrice(P){if(P>=SHIP[SHIP.length-1][1])return -1;for(var i=0;i<SHIP.length;i++){if(P<SHIP[i][1])return i;}return -1;}
+  function shipByPrice(P){var i=tierByPrice(P);return i<0?0:SHIP[i][2];}
+  // 送料込み合計(USD)→合計がT以下に収まる最大の商品価格K (帯ごとの階段関数を逆算)。
+  function priceFromTotal(T){
+    var best=null;
+    for(var i=0;i<SHIP.length;i++){
+      var lo=(i===0?0.01:SHIP[i][0]), hi=SHIP[i][1]-0.01, s=SHIP[i][2];
+      var k=Math.min(Math.round((T-s)*100)/100, hi);
+      if(k>=lo&&(best===null||k>best))best=k;
+    }
+    if(T>=SHIP[SHIP.length-1][1]&&(best===null||T>best))best=Math.round(T*100)/100;
+    return best===null?Math.max(0,T-SHIP[0][2]):best;
+  }
   function setMetric(vId,pId,pre,baseJPY){var el=$(vId);el.textContent=yen(pre);el.className="v "+(pre>=0?"pos":"neg");
     if(pId){var p=baseJPY>0?(pre/baseJPY*100):0;$(pId).textContent="粗利率 "+(p>=0?"":"−")+Math.abs(p).toFixed(1)+"%";}}
 
@@ -421,15 +435,16 @@
     applyDirectUI();
     compute();
   }
-  function setTag(i,over){$("shipTag").textContent="段階"+(i+1)+(over?"（表上限超）":"");}
+  function setTag(i,over){$("shipTag").textContent=(i<0?"送料0（$2500以上）":"段階"+(i+1))+(over?"（表上限超）":"");}
   function fromPrice(){
-    var Pc=num("price"), Pu=Pc/rate(); var i=tierByPrice(Pu); var Lc=SHIP[i][2]*rate();
-    setMoney("ship",Lc); setMoney("total",Pc+Lc); setTag(i,Pu>SHIP[SHIP.length-1][0]); compute();
+    var Pc=num("price"), Pu=Pc/rate(); var i=tierByPrice(Pu); var Lc=shipByPrice(Pu)*rate();
+    setMoney("ship",Lc); setMoney("total",Pc+Lc); setTag(i,false); compute();
   }
   function fromShip(){ setMoney("total",num("price")+num("ship")); compute(); }   // 手動送料：合計だけ更新
   function fromTotal(){
-    var Tc=num("total"), Tu=Tc/rate(); var i=tierByTotal(Tu); var Lc=SHIP[i][2]*rate();
-    setMoney("ship",Lc); setMoney("price",Math.max(0,Tc-Lc)); setTag(i,Tu>=SHIP[SHIP.length-1][1]); compute();
+    var Tc=num("total"), Tu=Tc/rate(); var Ku=priceFromTotal(Tu); var i=tierByPrice(Ku);
+    var Lc=shipByPrice(Ku)*rate();
+    setMoney("ship",Lc); setMoney("price",Math.max(0,Ku*rate())); setTag(i,false); compute();
   }
   function applyCur(c){
     var Pu=num("price")/rate();               // 旧通貨でのUSD価格を保持
