@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0d9488">
-<title>eBay 利益計算（パートナー用）</title>
+<title>eBay 利益計算（パートナー様用）</title>
 <style>
   :root{
     --bg:#f4f6f8; --card:#ffffff; --ink:#1b2733; --sub:#6b7a89;
@@ -79,7 +79,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1><span class="dot"></span>eBay 利益計算（パートナー用・US向け）</h1>
+  <h1><span class="dot"></span>eBay 利益計算（パートナー様用・US向け）</h1>
 
   <div class="card">
     <div class="grid3">
@@ -169,17 +169,17 @@
     try{el.setSelectionRange(pos,pos);}catch(e){}
   }
   // 商品価格→帯index。100未満は先頭帯、$2500以上は -1 (送料0)。
-  function tierByPrice(P){if(P>=SHIP[SHIP.length-1][1])return -1;for(var i=0;i<SHIP.length;i++){if(P<SHIP[i][1])return i;}return -1;}
+  function tierByPrice(P){if(P>SHIP[SHIP.length-1][1])return -1;for(var i=0;i<SHIP.length;i++){if(P<=SHIP[i][1])return i;}return -1;}
   function shipByPrice(P){var i=tierByPrice(P);return i<0?0:SHIP[i][2];}
   // 送料込み合計→合計がT以下に収まる最大の商品価格K (帯ごとの階段関数を逆算)。
   function priceFromTotal(T){
     var best=null;
     for(var i=0;i<SHIP.length;i++){
-      var lo=(i===0?0.01:SHIP[i][0]), hi=SHIP[i][1]-0.01, s=SHIP[i][2];
+      var lo=(i===0?0.01:SHIP[i][0]+0.01), hi=SHIP[i][1], s=SHIP[i][2];
       var k=Math.min(Math.round((T-s)*100)/100, hi);
       if(k>=lo&&(best===null||k>best))best=k;
     }
-    if(T>=SHIP[SHIP.length-1][1]&&(best===null||T>best))best=Math.round(T*100)/100;
+    if(T>SHIP[SHIP.length-1][1]&&(best===null||T>best))best=Math.round(T*100)/100;
     return best===null?Math.max(0,T-SHIP[0][2]):best;
   }
 

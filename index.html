@@ -288,18 +288,18 @@
     var pos=0,cnt=0; while(pos<out.length&&cnt<before){if(/[\d.]/.test(out[pos]))cnt++;pos++;}
     try{el.setSelectionRange(pos,pos);}catch(e){}
   }
-  // 商品価格(USD)→帯index。100未満は先頭帯、$2500以上は -1 (送料0)。
-  function tierByPrice(P){if(P>=SHIP[SHIP.length-1][1])return -1;for(var i=0;i<SHIP.length;i++){if(P<SHIP[i][1])return i;}return -1;}
+  // 商品価格(USD)→帯index。帯上限は「以下」(150ちょうどは帯1)。100以下は先頭帯、$2500超は -1 (送料0)。
+  function tierByPrice(P){if(P>SHIP[SHIP.length-1][1])return -1;for(var i=0;i<SHIP.length;i++){if(P<=SHIP[i][1])return i;}return -1;}
   function shipByPrice(P){var i=tierByPrice(P);return i<0?0:SHIP[i][2];}
   // 送料込み合計(USD)→合計がT以下に収まる最大の商品価格K (帯ごとの階段関数を逆算)。
   function priceFromTotal(T){
     var best=null;
     for(var i=0;i<SHIP.length;i++){
-      var lo=(i===0?0.01:SHIP[i][0]), hi=SHIP[i][1]-0.01, s=SHIP[i][2];
+      var lo=(i===0?0.01:SHIP[i][0]+0.01), hi=SHIP[i][1], s=SHIP[i][2];
       var k=Math.min(Math.round((T-s)*100)/100, hi);
       if(k>=lo&&(best===null||k>best))best=k;
     }
-    if(T>=SHIP[SHIP.length-1][1]&&(best===null||T>best))best=Math.round(T*100)/100;
+    if(T>SHIP[SHIP.length-1][1]&&(best===null||T>best))best=Math.round(T*100)/100;
     return best===null?Math.max(0,T-SHIP[0][2]):best;
   }
   function setMetric(vId,pId,pre,baseJPY){var el=$(vId);el.textContent=yen(pre);el.className="v "+(pre>=0?"pos":"neg");
