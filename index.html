@@ -259,9 +259,11 @@
 
 <script>
 (function(){
-  // ★2026-07-29 新設計: [帯下限, 帯上限(exclusive), 送料] — 帯は商品価格(送料抜き)で選ぶ。
-  //   送料 = 帯中央の関税(15.6%+$7)を$5刻みに丸めた案B。$2500以上は送料0(正式通関)。
-  var SHIP=[[100,150,25],[150,200,35],[200,250,40],[250,300,50],[300,350,60],[350,400,65],[400,450,75],[450,500,80],[500,600,95],[600,700,110],[700,800,125],[800,900,140],[900,1000,155],[1000,1100,170],[1100,1200,185],[1200,1300,200],[1300,1400,220],[1400,1500,235],[1500,1600,250],[1600,1700,265],[1700,1800,280],[1800,1900,295],[1900,2000,310],[2000,2100,325],[2100,2200,340],[2200,2300,360],[2300,2400,375],[2400,2500,390]];
+  // ★2026-07-30 最終価格ベース: [商品価格上限, 最終価格上限, 送料]。
+  //   帯は「最終価格(送料込み合計)」で選ぶので、どの最終価格もそのまま実現できる。
+  //   商品価格 = 最終価格 - 送料 (引き算だけ)。商品価格上限 = 最終価格上限 - 送料。
+  //   送料 = (帯中央の最終価格*15.6%+$7)/1.156 を$5刻みに丸めた案B。$2500超は0(正式通関)。
+  var SHIP=[[125,150,25],[170,200,30],[215,250,35],[255,300,45],[300,350,50],[345,400,55],[385,450,65],[430,500,70],[520,600,80],[605,700,95],[695,800,105],[780,900,120],[865,1000,135],[950,1100,150],[1040,1200,160],[1125,1300,175],[1210,1400,190],[1300,1500,200],[1385,1600,215],[1470,1700,230],[1560,1800,240],[1645,1900,255],[1730,2000,270],[1815,2100,285],[1905,2200,295],[1990,2300,310],[2075,2400,325],[2165,2500,335]];
   var calcIds=["selfship","cost","promo","fx","tax","fvf","intl","payoneer","duty","dutyF","refund","ppF","wiseF"];
   var defaults={selfship:"3000",cost:"12000",promo:"3",fx:"161.31",tax:"10",fvf:"13.25",intl:"1.35",payoneer:"2",duty:"15.6",dutyF:"7",refund:"8",ppF:"8.2",wiseF:"2.2"};
   var SYM={USD:"$",EUR:"€",AUD:"A$",GBP:"£"}, NAME={USD:"米ドル",EUR:"ユーロ",AUD:"豪ドル",GBP:"英ポンド"};
@@ -288,20 +290,14 @@
     var pos=0,cnt=0; while(pos<out.length&&cnt<before){if(/[\d.]/.test(out[pos]))cnt++;pos++;}
     try{el.setSelectionRange(pos,pos);}catch(e){}
   }
-  // 商品価格(USD)→帯index。帯上限は「以下」(150ちょうどは帯1)。100以下は先頭帯、$2500超は -1 (送料0)。
-  function tierByPrice(P){if(P>SHIP[SHIP.length-1][1])return -1;for(var i=0;i<SHIP.length;i++){if(P<=SHIP[i][1])return i;}return -1;}
+  // 最終価格(USD)→帯index。上限は「以下」($150ちょうどは帯1)。$2500超は -1 (送料0)。
+  function tierByTotal(T){if(T>SHIP[SHIP.length-1][1])return -1;for(var i=0;i<SHIP.length;i++){if(T<=SHIP[i][1])return i;}return -1;}
+  function shipByTotal(T){var i=tierByTotal(T);return i<0?0:SHIP[i][2];}
+  // 商品価格(USD)→帯index。商品価格上限で引くので tierByTotal(価格+送料) と一致。
+  function tierByPrice(P){if(P>SHIP[SHIP.length-1][0])return -1;for(var i=0;i<SHIP.length;i++){if(P<=SHIP[i][0])return i;}return -1;}
   function shipByPrice(P){var i=tierByPrice(P);return i<0?0:SHIP[i][2];}
-  // 送料込み合計(USD)→合計がT以下に収まる最大の商品価格K (帯ごとの階段関数を逆算)。
-  function priceFromTotal(T){
-    var best=null;
-    for(var i=0;i<SHIP.length;i++){
-      var lo=(i===0?0.01:SHIP[i][0]+0.01), hi=SHIP[i][1], s=SHIP[i][2];
-      var k=Math.min(Math.round((T-s)*100)/100, hi);
-      if(k>=lo&&(best===null||k>best))best=k;
-    }
-    if(T>SHIP[SHIP.length-1][1]&&(best===null||T>best))best=Math.round(T*100)/100;
-    return best===null?Math.max(0,T-SHIP[0][2]):best;
-  }
+  // 最終価格→商品価格。引き算だけなので帯の隔間(デッドゾーン)は生じない。
+  function priceFromTotal(T){return Math.round((T-shipByTotal(T))*100)/100;}
   function setMetric(vId,pId,pre,baseJPY){var el=$(vId);el.textContent=yen(pre);el.className="v "+(pre>=0?"pos":"neg");
     if(pId){var p=baseJPY>0?(pre/baseJPY*100):0;$(pId).textContent="粗利率 "+(p>=0?"":"−")+Math.abs(p).toFixed(1)+"%";}}
 
@@ -435,16 +431,15 @@
     applyDirectUI();
     compute();
   }
-  function setTag(i,over){$("shipTag").textContent=(i<0?"送料0（$2500以上）":"段階"+(i+1))+(over?"（表上限超）":"");}
+  function setTag(i,over){$("shipTag").textContent=(i<0?"送料0（$2500超・正式通関）":"段階"+(i+1))+(over?"（表上限超）":"");}
   function fromPrice(){
     var Pc=num("price"), Pu=Pc/rate(); var i=tierByPrice(Pu); var Lc=shipByPrice(Pu)*rate();
     setMoney("ship",Lc); setMoney("total",Pc+Lc); setTag(i,false); compute();
   }
   function fromShip(){ setMoney("total",num("price")+num("ship")); compute(); }   // 手動送料：合計だけ更新
   function fromTotal(){
-    var Tc=num("total"), Tu=Tc/rate(); var Ku=priceFromTotal(Tu); var i=tierByPrice(Ku);
-    var Lc=shipByPrice(Ku)*rate();
-    setMoney("ship",Lc); setMoney("price",Math.max(0,Ku*rate())); setTag(i,false); compute();
+    var Tc=num("total"), Tu=Tc/rate(); var i=tierByTotal(Tu); var Lc=shipByTotal(Tu)*rate();
+    setMoney("ship",Lc); setMoney("price",Math.max(0,Tc-Lc)); setTag(i,false); compute();
   }
   function applyCur(c){
     var Pu=num("price")/rate();               // 旧通貨でのUSD価格を保持
