@@ -67,6 +67,13 @@
   .inputrow .clr.clr-u,.grid3 .inputrow .clr.clr-u{right:27px;}
   .inputrow .clr:active{opacity:.45;}
   .shiptag{font-size:.62rem; color:var(--sub); margin-top:3px; font-weight:600;}
+  /* $2500超オーバーライド（送料帯を延長して関税分を上乗せする） */
+  .ovrow{display:flex; align-items:center; gap:8px; margin:0 0 8px;}
+  .ovbtn{flex:0 0 auto; background:var(--field); border:1.5px solid var(--line); color:var(--sub);
+    border-radius:8px; padding:5px 9px; font-size:.66rem; font-weight:800; cursor:pointer; white-space:nowrap;}
+  .ovbtn.on{background:var(--us-soft); border-color:var(--us); color:var(--us);}
+  .ovbtn:active{opacity:.6;}
+  .ovnote{flex:1 1 auto; min-width:0; font-size:.6rem; color:var(--sub); font-weight:600; line-height:1.35;}
   .conv{font-size:.66rem; color:var(--accent); font-weight:700; margin-top:8px;}
   .fxline{display:flex; align-items:center; gap:7px; margin-top:7px; font-size:.72rem; color:var(--sub);}
   .fxline #fxMarket{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
@@ -167,6 +174,11 @@
           <button type="button" class="clr" data-clr="total" aria-label="クリア">×</button></div></div>
     </div>
 
+    <div class="ovrow eonly" id="ovRow">
+      <button type="button" class="ovbtn" id="ovBtn" aria-pressed="false">⚠ $2500超 Override</button>
+      <span class="ovnote" id="ovNote"></span>
+    </div>
+
     <div class="grid3 donly hide" id="dGrid">
       <div class="field"><label id="dPriceLbl">① 商品価格</label>
         <div class="inputrow"><span class="unit" id="dUP">$</span>
@@ -251,7 +263,7 @@
         </div>
         <button class="reset" id="resetBtn">既定値に戻す</button>
         <div class="note donly hide">【直取】売上＝①商品価格＋②送料。<b>②送料は自動で「①商品価格×関税率(15.6%)」</b>が入る（送料名目で関税分を回収する前提。手で上書きもできるよ）。<b>関税＝①商品価格のみ×関税率</b>（送料には掛けない・US向けのみ）。<b>PayPal/Wise手数料＝売上（①＋②）に対して</b>。手取り＝売上−関税−手数料 → 円換算して 自己負担送料¥・仕入れ¥ を引いたのが粗利。還付込み＝粗利＋(仕入−仕入/(1+還付率))。US以外は関税なし＝送料0・4通貨（USD/EUR/AUD/GBP）で入力可。eBay手数料・プロモ・Payoneerは掛からない。</div>
-        <div class="note eonly">①販売価格→②送料が段階表で自動（手動変更も可）→③合計。③合計→送料と販売価格を逆算。②送料＝バイヤーに課金する送料（US向けのみ・合計にeBay手数料の対象）。自己負担送料¥＝実際の発送コスト（US/US以外とも実費で控除）。US以外は課金送料・関税なし。通貨ボタンで①②③を入力（送料表はUSD換算で判定）。手取り＝(合計)−eBay手数料−関税→円換算後Payoneer控除−自己負担送料−仕入。還付込み＝還付前＋(仕入−仕入/(1+還付率))。為替は1日1回自動取得・入力は自動保存。</div>
+        <div class="note eonly">①販売価格→②送料が段階表で自動（手動変更も可）→③合計。③合計→送料と販売価格を逆算。②送料＝バイヤーに課金する送料（US向けのみ・合計にeBay手数料の対象）。自己負担送料¥＝実際の発送コスト（US/US以外とも実費で控除）。US以外は課金送料・関税なし。通貨ボタンで①②③を入力（送料表はUSD換算で判定）。手取り＝(合計)−eBay手数料−関税→円換算後Payoneer控除−自己負担送料−仕入。還付込み＝還付前＋(仕入−仕入/(1+還付率))。為替は1日1回自動取得・入力は自動保存。<b>⚠ $2500超 Override</b>＝ONにすると送料の段階表を$10,000まで延長する（合計は$2500超でも1個ずつは$2500未満で小口通関になり、関税をこちらが負担するケース用）。OFFだと$2500超は送料0。<b>関税はON/OFFに関わらず常に差し引いている</b>ので、OFFのままだと関税分を回収できない計算になる。</div>
       </div>
     </details>
   </div>
@@ -264,6 +276,16 @@
   //   商品価格 = 最終価格 - 送料 (引き算だけ)。商品価格上限 = 最終価格上限 - 送料。
   //   送料 = (帯中央の最終価格*15.6%+$7)/1.156 を$5刻みに丸めた案B。$2500超は0(正式通関)。
   var SHIP=[[125,150,25],[170,200,30],[215,250,35],[255,300,45],[300,350,50],[345,400,55],[385,450,65],[430,500,70],[520,600,80],[605,700,95],[695,800,105],[780,900,120],[865,1000,135],[950,1100,150],[1040,1200,160],[1125,1300,175],[1210,1400,190],[1300,1500,200],[1385,1600,215],[1470,1700,230],[1560,1800,240],[1645,1900,255],[1730,2000,270],[1815,2100,285],[1905,2200,295],[1990,2300,310],[2075,2400,325],[2165,2500,335]];
+  // ★2026-08-04 Override: 合計$2500超でも「1個ずつは$2500未満」で小口通関になり、
+  //   関税をこちらが負担するケース用。表と同じ式で帯を$10,000まで延長する。
+  //   送料 = (帯中央の最終価格*15.6% + $7)/1.156 を$5刻みに丸め（表の生成式と同一）。
+  var SHIP_EXT=(function(){var a=[],prev=2500;
+    for(var T=2600;T<=10000;T+=100){var c=(prev+T)/2;
+      var s=Math.round(((c*0.156+7)/1.156)/5)*5; a.push([T-s,T,s]); prev=T;}
+    return a;})();
+  var SHIP_ALL=SHIP.concat(SHIP_EXT);
+  var ovr=false;                                   // Override ON = 帯を$2500超へ延長
+  function tbl(){ return ovr?SHIP_ALL:SHIP; }
   var calcIds=["selfship","cost","promo","fx","tax","fvf","intl","payoneer","duty","dutyF","refund","ppF","wiseF"];
   var defaults={selfship:"3000",cost:"12000",promo:"3",fx:"161.31",tax:"10",fvf:"13.25",intl:"1.35",payoneer:"2",duty:"15.6",dutyF:"7",refund:"8",ppF:"8.2",wiseF:"2.2"};
   var SYM={USD:"$",EUR:"€",AUD:"A$",GBP:"£"}, NAME={USD:"米ドル",EUR:"ユーロ",AUD:"豪ドル",GBP:"英ポンド"};
@@ -290,12 +312,12 @@
     var pos=0,cnt=0; while(pos<out.length&&cnt<before){if(/[\d.]/.test(out[pos]))cnt++;pos++;}
     try{el.setSelectionRange(pos,pos);}catch(e){}
   }
-  // 最終価格(USD)→帯index。上限は「以下」($150ちょうどは帯1)。$2500超は -1 (送料0)。
-  function tierByTotal(T){if(T>SHIP[SHIP.length-1][1])return -1;for(var i=0;i<SHIP.length;i++){if(T<=SHIP[i][1])return i;}return -1;}
-  function shipByTotal(T){var i=tierByTotal(T);return i<0?0:SHIP[i][2];}
+  // 最終価格(USD)→帯index。上限は「以下」($150ちょうどは帯1)。表の上限超は -1 (送料0)。
+  function tierByTotal(T){var t=tbl();if(T>t[t.length-1][1])return -1;for(var i=0;i<t.length;i++){if(T<=t[i][1])return i;}return -1;}
+  function shipByTotal(T){var i=tierByTotal(T);return i<0?0:tbl()[i][2];}
   // 商品価格(USD)→帯index。商品価格上限で引くので tierByTotal(価格+送料) と一致。
-  function tierByPrice(P){if(P>SHIP[SHIP.length-1][0])return -1;for(var i=0;i<SHIP.length;i++){if(P<=SHIP[i][0])return i;}return -1;}
-  function shipByPrice(P){var i=tierByPrice(P);return i<0?0:SHIP[i][2];}
+  function tierByPrice(P){var t=tbl();if(P>t[t.length-1][0])return -1;for(var i=0;i<t.length;i++){if(P<=t[i][0])return i;}return -1;}
+  function shipByPrice(P){var i=tierByPrice(P);return i<0?0:tbl()[i][2];}
   // 最終価格→商品価格。引き算だけなので帯の隔間(デッドゾーン)は生じない。
   function priceFromTotal(T){return Math.round((T-shipByTotal(T))*100)/100;}
   function setMetric(vId,pId,pre,baseJPY){var el=$(vId);el.textContent=yen(pre);el.className="v "+(pre>=0?"pos":"neg");
@@ -333,7 +355,7 @@
     try{var o={};calcIds.forEach(function(k){o[k]=$(k).value;});
       o.price=$("price").value;o.ship=$("ship").value;o.__cur=cur;
       o.dPrice=$("dPrice").value;o.dShip=$("dShip").value;
-      o.__mode=mode;o.__dest=dest;o.__pay=pay;o.__dcur=dcur;
+      o.__mode=mode;o.__dest=dest;o.__pay=pay;o.__dcur=dcur;o.__ovr=ovr;
       localStorage.setItem("ebayProfitCalc",JSON.stringify(o));}catch(e){}
   }
 
@@ -431,7 +453,18 @@
     applyDirectUI();
     compute();
   }
-  function setTag(i,over){$("shipTag").textContent=(i<0?"送料0（$2500超・正式通関）":"段階"+(i+1))+(over?"（表上限超）":"");}
+  function setTag(i,over){
+    var t=(i<0)?(ovr?"送料0（$10,000超）":"送料0（$2500超・正式通関）")
+               :("段階"+(i+1)+(i>=SHIP.length?"（延長）":""));
+    $("shipTag").textContent=t+(over?"（表上限超）":"");
+  }
+  function applyOvr(){
+    $("ovBtn").classList.toggle("on",ovr);
+    $("ovBtn").setAttribute("aria-pressed",ovr?"true":"false");
+    $("ovNote").textContent=ovr
+      ? "ON：$2500超も帯を延長（〜$10,000）。送料に関税分を乗せて回収する前提"
+      : "OFF：$2500超は送料0（正式通関の想定）。関税は常に差し引く";
+  }
   function fromPrice(){
     var Pc=num("price"), Pu=Pc/rate(); var i=tierByPrice(Pu); var Lc=shipByPrice(Pu)*rate();
     setMoney("ship",Lc); setMoney("total",Pc+Lc); setTag(i,false); compute();
@@ -459,7 +492,8 @@
       if(saved.__mode==="direct"||saved.__mode==="ebay")mode=saved.__mode;
       if(saved.__dest==="us"||saved.__dest==="non")dest=saved.__dest;
       if(saved.__pay==="paypal"||saved.__pay==="wise")pay=saved.__pay;
-      if(saved.__dcur&&SYM[saved.__dcur])dcur=saved.__dcur;}}catch(e){}
+      if(saved.__dcur&&SYM[saved.__dcur])dcur=saved.__dcur;
+      if(saved.__ovr===true)ovr=true;}}catch(e){}
   // 金額欄の初期表示をカンマ整形
   moneyIds.forEach(function(id){if($(id).value!=="")setMoney(id,num(id));});
 
@@ -498,7 +532,10 @@
   for(var dci=0;dci<dcb.length;dci++){dcb[dci].addEventListener("click",function(){applyDcur(this.getAttribute("data-dcur"));});}
   $("eqPP").addEventListener("click",function(){applyEq("paypal");});
   $("eqWS").addEventListener("click",function(){applyEq("wise");});
+  // $2500超オーバーライド：帯の延長を切り替えて、いま入っている価格で引き直す
+  $("ovBtn").addEventListener("click",function(){ovr=!ovr;applyOvr();fromPrice();});
 
+  applyOvr();
   applyCur(cur);
   setSeg("destSeg","data-dest",dest); setSeg("paySeg","data-pay",pay); setSeg("dCurSeg","data-dcur",dcur);
   applyMode(mode); applyDirectUI(); dFromPrice();
