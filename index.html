@@ -261,7 +261,7 @@
           <div class="field donly hide"><label>PayPal %</label><input class="pad-plain" type="number" id="ppF" inputmode="decimal" value="8.2"></div>
           <div class="field donly hide"><label>Wise %</label><input class="pad-plain" type="number" id="wiseF" inputmode="decimal" value="2.2"></div>
           <div class="field"><label>還付率(消費税) %</label><input class="pad-plain" type="number" id="refund" inputmode="decimal" value="8"></div>
-          <div class="field"><label>為替 ¥/$（手動上書き）</label><input class="pad-plain" type="number" id="fx" inputmode="decimal" value="161.31"></div>
+          <div class="field"><label>為替 ¥/$（開くたび最新）</label><input class="pad-plain" type="number" id="fx" inputmode="decimal" value="161.31"></div>
         </div>
         <button class="reset" id="resetBtn">既定値に戻す</button>
         <div class="note donly hide">【直取】売上＝①商品価格＋②送料。<b>②送料は自動で「①商品価格×関税率(13.1%)」</b>が入る（送料名目で関税分を回収する前提。手で上書きもできるよ）。<b>関税＝①商品価格のみ×関税率</b>（送料には掛けない・US向けのみ）。<b>PayPal/Wise手数料＝売上（①＋②）に対して</b>。手取り＝売上−関税−手数料 → 円換算して 自己負担送料¥・仕入れ¥ を引いたのが粗利。還付込み＝粗利＋(仕入−仕入/(1+還付率))。US以外は関税なし＝送料0・4通貨（USD/EUR/AUD/GBP）で入力可。eBay手数料・プロモ・Payoneerは掛からない。</div>
@@ -287,9 +287,6 @@
     return a;})();
   var SHIP_ALL=SHIP.concat(SHIP_EXT);
   var ovr=false;                                   // Override ON = 帯を$2500超へ延長
-  // 為替：自動で入れた値を覚えておく。「保存値 == 既定値」でしか自動更新しない作りだと、
-  //   一度自動で入った時点で以後ずっと固定されてしまう（市場レート表示だけ新しくなる）。
-  var fxAuto=null;
   function tbl(){ return ovr?SHIP_ALL:SHIP; }
   var calcIds=["selfship","cost","promo","fx","tax","fvf","intl","payoneer","duty","dutyF","refund","dDuty","ppF","wiseF"];
   // 🔴 料率は「コード側が大元」。端末に保存された値が既定値を上書きし続けると、
@@ -371,7 +368,7 @@
       o.__def={};SYNC_IDS.forEach(function(k){o.__def[k]=defaults[k];});
       o.price=$("price").value;o.ship=$("ship").value;o.__cur=cur;
       o.dPrice=$("dPrice").value;o.dShip=$("dShip").value;
-      o.__mode=mode;o.__dest=dest;o.__pay=pay;o.__dcur=dcur;o.__ovr=ovr;o.__fxAuto=fxAuto;
+      o.__mode=mode;o.__dest=dest;o.__pay=pay;o.__dcur=dcur;o.__ovr=ovr;
       localStorage.setItem("ebayProfitCalc",JSON.stringify(o));}catch(e){}
   }
 
@@ -516,8 +513,7 @@
       if(saved.__dest==="us"||saved.__dest==="non")dest=saved.__dest;
       if(saved.__pay==="paypal"||saved.__pay==="wise")pay=saved.__pay;
       if(saved.__dcur&&SYM[saved.__dcur])dcur=saved.__dcur;
-      if(saved.__ovr===true)ovr=true;
-      if(typeof saved.__fxAuto==="string")fxAuto=saved.__fxAuto;}}catch(e){}
+      if(saved.__ovr===true)ovr=true;}}catch(e){}
   // 金額欄の初期表示をカンマ整形
   moneyIds.forEach(function(id){if($(id).value!=="")setMoney(id,num(id));});
 
@@ -530,7 +526,7 @@
   $("cost").addEventListener("input",function(){reformat(this);compute();});
   ["promo","tax","fvf","intl","payoneer","duty","dutyF","refund"].forEach(function(k){$(k).addEventListener("input",compute);});
   // 為替を手で打ったら「手動」扱い＝自動更新の対象から外す（打った値を勝手に上書きしない）
-  $("fx").addEventListener("input",function(){fxAuto=null;compute();});
+  $("fx").addEventListener("input",compute);
   $("resetBtn").addEventListener("click",function(){calcIds.forEach(function(k){$(k).value=defaults[k];});moneyIds.forEach(function(id){if($(id).value!=="")setMoney(id,num(id));});fromPrice();});
   // クリア「×」ボタン：欄を空にして該当ハンドラを呼ぶ
   var clrHandlers={price:fromPrice,ship:fromShip,total:fromTotal,cost:compute,selfship:compute,promo:compute,
@@ -578,19 +574,19 @@
       .catch(function(){return fetch("https://api.frankfurter.dev/v1/latest?base=USD&symbols=JPY,EUR,AUD,GBP").then(function(r){return r.json();})
         .then(function(j){if(j&&j.rates&&j.rates.JPY)return {rates:j.rates,date:j.date};throw 0;});});
   }
-  // 自動で入れた値のまま（＝人が触っていない）なら市場レートで更新してよい
-  function fxIsAuto(){var v=$("fx").value.trim();return v===""||v===defaults.fx||(fxAuto!==null&&v===fxAuto);}
-  function setFxMarket(j){var s=String(Math.round(j*100)/100);$("fx").value=s;fxAuto=s;}
+  // 為替は市場レートが大元。開くたび・↻を押すたび必ず最新で上書きする。
+  // （手で打った値は「今この場だけ」の試算用。保存しないので次に開けば最新に戻る）
+  function setFxMarket(j){$("fx").value=String(Math.round(j*100)/100);}
   function loadRate(force,applyFx){
     var key="ebayFxMarket";
     if(!force){try{var c=JSON.parse(localStorage.getItem(key)||"null");if(c&&c.fetchedDay===todayStr()){window.__fxMarket=c;applyRates(c);showMarket(c);
-      if(fxIsAuto())setFxMarket(c.rates.JPY);
+      setFxMarket(c.rates.JPY);
       fromPrice();return;}}catch(e){}}
     $("fxMarket").textContent="市場レート 取得中…";
     fetchRate().then(function(m){
       m.fetchedDay=todayStr(); window.__fxMarket=m; applyRates(m); showMarket(m);
       try{localStorage.setItem(key,JSON.stringify(m));}catch(e){}
-      if(applyFx||fxIsAuto())setFxMarket(m.rates.JPY);
+      setFxMarket(m.rates.JPY);
       fromPrice();
     }).catch(function(){showMarket(null);});
   }
