@@ -292,6 +292,12 @@
   var fxAuto=null;
   function tbl(){ return ovr?SHIP_ALL:SHIP; }
   var calcIds=["selfship","cost","promo","fx","tax","fvf","intl","payoneer","duty","dutyF","refund","dDuty","ppF","wiseF"];
+  // 🔴 料率は「コード側が大元」。端末に保存された値が既定値を上書きし続けると、
+  //   こちらで率を直しても各端末には一生反映されない（2026-08-18 実際に発生：
+  //   パートナー様の端末に 関税 13.1% が残り続けて粗利が合わなかった）。
+  //   保存時に「どの既定値をもとにした値か」も一緒に残し、大元が変わっていたら
+  //   保存値を捨てて新しい既定値を採用する。大元が同じなら手元の調整は残る。
+  var SYNC_IDS=["promo","tax","fvf","intl","payoneer","duty","dutyF","refund","dDuty","ppF","wiseF"];
   var defaults={selfship:"3000",cost:"12000",promo:"3",fx:"161.31",tax:"10",fvf:"13.25",intl:"1.35",payoneer:"2",duty:"15.6",dutyF:"7",refund:"8",dDuty:"13.1",ppF:"8.2",wiseF:"2.2"};
   var SYM={USD:"$",EUR:"€",AUD:"A$",GBP:"£"}, NAME={USD:"米ドル",EUR:"ユーロ",AUD:"豪ドル",GBP:"英ポンド"};
   var rates={USD:1, JPY:161.31, EUR:0.92, AUD:1.50, GBP:0.79};
@@ -362,6 +368,7 @@
     computeDirect();
 
     try{var o={};calcIds.forEach(function(k){o[k]=$(k).value;});
+      o.__def={};SYNC_IDS.forEach(function(k){o.__def[k]=defaults[k];});
       o.price=$("price").value;o.ship=$("ship").value;o.__cur=cur;
       o.dPrice=$("dPrice").value;o.dShip=$("dShip").value;
       o.__mode=mode;o.__dest=dest;o.__pay=pay;o.__dcur=dcur;o.__ovr=ovr;o.__fxAuto=fxAuto;
@@ -494,7 +501,14 @@
   }
 
   try{var saved=JSON.parse(localStorage.getItem("ebayProfitCalc")||"null");
-    if(saved){calcIds.forEach(function(k){if(saved[k]!==undefined)$(k).value=saved[k];});
+    if(saved){var sd=saved.__def||{};
+      calcIds.forEach(function(k){
+        if(saved[k]===undefined)return;
+        // 大元が変わった料率（保存が古い＝sd に無い場合も含む）は保存値を捨てる
+        // 大元が変わった料率は保存値を捨て、**defaults を明示的に入れる**。
+        // return するだけだと HTML の value 属性が残って追従しない。
+        if(SYNC_IDS.indexOf(k)>=0&&sd[k]!==defaults[k]){$(k).value=defaults[k];return;}
+        $(k).value=saved[k];});
       if(saved.price!==undefined)$("price").value=saved.price; if(saved.__cur&&SYM[saved.__cur])cur=saved.__cur;
       if(saved.dPrice!==undefined)$("dPrice").value=saved.dPrice;
       if(saved.dShip!==undefined)$("dShip").value=saved.dShip;
